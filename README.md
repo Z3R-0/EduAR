@@ -5,10 +5,13 @@
 It does this by providing an augmented reality tool for teachers to use. Teachers can create a scenario using a library of figures, giving these figures some tasks. An  example of a task is a quiz giver. This figure will ask questions that the children can then answer.</p>
 ***
 ## The Team
-
+### Code Monkeys
 - **Tim Meermans**
-- **Conor Murphy**
-- **Wesley Pleijsier**
-- **Ainhoa Abad**
-- **Henrico Nagelhout**
 - **Robert Bisschop**
+### Security Monkeys
+- **Henrico Nagelhout**
+- **Wesley Pleijsier**
+### Research Monkey
+- **Ainhoa Abad**
+### Design Monkey
+- **Conor Murphy**
