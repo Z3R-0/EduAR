@@ -9,10 +9,13 @@ It does this by providing an augmented reality tool for teachers to use. Teacher
 ### Code Monkeys
 - **Tim Meermans**
 - **Robert Bisschop**
+
 ### Security Monkeys
 - **Henrico Nagelhout**
 - **Wesley Pleijsier**
+
 ### Research Monkey
 - **Ainhoa Abad**
+
 ### Design Monkey
 - **Conor Murphy**
