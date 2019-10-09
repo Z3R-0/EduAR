@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Gegenereerd op: 09 okt 2019 om 13:13
+-- Gegenereerd op: 09 okt 2019 om 13:59
 -- Serverversie: 10.4.6-MariaDB
 -- PHP-versie: 7.3.8
 
@@ -33,6 +33,15 @@ CREATE TABLE `answer` (
   `text` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+--
+-- Gegevens worden geëxporteerd voor tabel `answer`
+--
+
+INSERT INTO `answer` (`id`, `text`) VALUES
+(1, 'A fuckwit'),
+(2, 'A tit'),
+(3, 'A great tit');
+
 -- --------------------------------------------------------
 
 --
@@ -45,44 +54,73 @@ CREATE TABLE `class` (
   `name` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+--
+-- Gegevens worden geëxporteerd voor tabel `class`
+--
+
+INSERT INTO `class` (`id`, `classcode`, `name`) VALUES
+(1, 'ICTCC', 'Concept & creation');
+
 -- --------------------------------------------------------
 
 --
--- Tabelstructuur voor tabel `model`
+-- Tabelstructuur voor tabel `figure`
 --
 
-CREATE TABLE `model` (
+CREATE TABLE `figure` (
   `id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
   `information` varchar(255) NOT NULL,
-  `task_id` int(11) NOT NULL,
-  `location` varchar(255) NOT NULL
+  `task` enum('quizgiver','info_prop','static_prop') NOT NULL,
+  `location` varchar(255) NOT NULL,
+  `questions` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Gegevens worden geëxporteerd voor tabel `figure`
+--
+
+INSERT INTO `figure` (`id`, `name`, `information`, `task`, `location`, `questions`) VALUES
+(1, 'Tit', 'tit_info.txt', 'quizgiver', 'Resources/Models/tit.unity', '1');
 
 -- --------------------------------------------------------
 
 --
--- Tabelstructuur voor tabel `preferences`
+-- Tabelstructuur voor tabel `preference`
 --
 
-CREATE TABLE `preferences` (
+CREATE TABLE `preference` (
   `id` int(11) NOT NULL,
   `layout` enum('','','','') NOT NULL,
   `language` varchar(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+--
+-- Gegevens worden geëxporteerd voor tabel `preference`
+--
+
+INSERT INTO `preference` (`id`, `layout`, `language`) VALUES
+(1, '', 'nl_NL');
+
 -- --------------------------------------------------------
 
 --
--- Tabelstructuur voor tabel `quiz`
+-- Tabelstructuur voor tabel `question`
 --
 
-CREATE TABLE `quiz` (
+CREATE TABLE `question` (
   `id` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
   `question` varchar(255) NOT NULL,
-  `answers` varchar(255) NOT NULL
+  `answers` varchar(255) NOT NULL,
+  `correct_answer_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Gegevens worden geëxporteerd voor tabel `question`
+--
+
+INSERT INTO `question` (`id`, `question`, `answers`, `correct_answer_id`) VALUES
+(1, 'What kind of animal am I?', '1,2,3', 2);
 
 -- --------------------------------------------------------
 
@@ -94,10 +132,17 @@ CREATE TABLE `scenario` (
   `id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
   `available` tinyint(1) DEFAULT NULL,
-  `models` varchar(255) NOT NULL,
+  `figures` varchar(255) NOT NULL,
   `class_id` int(11) NOT NULL,
-  `storytype` enum('','','','') NOT NULL
+  `storytype` enum('scavenger','story','speedrun') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Gegevens worden geëxporteerd voor tabel `scenario`
+--
+
+INSERT INTO `scenario` (`id`, `name`, `available`, `figures`, `class_id`, `storytype`) VALUES
+(1, 'Checking out the tits', 1, '1', 1, 'scavenger');
 
 -- --------------------------------------------------------
 
@@ -112,18 +157,14 @@ CREATE TABLE `student` (
   `name` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
--- --------------------------------------------------------
-
 --
--- Tabelstructuur voor tabel `task`
+-- Gegevens worden geëxporteerd voor tabel `student`
 --
 
-CREATE TABLE `task` (
-  `id` int(11) NOT NULL,
-  `type` varchar(255) NOT NULL,
-  `info` varchar(255) NOT NULL,
-  `quiz_id` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+INSERT INTO `student` (`id`, `class_id`, `pincode`, `name`) VALUES
+(1, 1, 4000, 'Tim Meermans'),
+(2, 1, 5000, 'Robert Bisschop'),
+(3, 1, 1234, 'Conor Murphy');
 
 -- --------------------------------------------------------
 
@@ -139,6 +180,13 @@ CREATE TABLE `teacher` (
   `password` varchar(255) NOT NULL,
   `class_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Gegevens worden geëxporteerd voor tabel `teacher`
+--
+
+INSERT INTO `teacher` (`id`, `name`, `email`, `preference_id`, `password`, `class_id`) VALUES
+(3, 'Pietje Puk', 'test@test.nl', 1, '16d7a4fca7442dda3ad93c9a726597e4', 1);
 
 --
 -- Indexen voor geëxporteerde tabellen
@@ -157,22 +205,21 @@ ALTER TABLE `class`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexen voor tabel `model`
+-- Indexen voor tabel `figure`
 --
-ALTER TABLE `model`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `model_task` (`task_id`);
-
---
--- Indexen voor tabel `preferences`
---
-ALTER TABLE `preferences`
+ALTER TABLE `figure`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexen voor tabel `quiz`
+-- Indexen voor tabel `preference`
 --
-ALTER TABLE `quiz`
+ALTER TABLE `preference`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexen voor tabel `question`
+--
+ALTER TABLE `question`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -190,13 +237,6 @@ ALTER TABLE `student`
   ADD KEY `student_class` (`class_id`) USING BTREE;
 
 --
--- Indexen voor tabel `task`
---
-ALTER TABLE `task`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `task_quiz` (`quiz_id`);
-
---
 -- Indexen voor tabel `teacher`
 --
 ALTER TABLE `teacher`
@@ -212,65 +252,53 @@ ALTER TABLE `teacher`
 -- AUTO_INCREMENT voor een tabel `answer`
 --
 ALTER TABLE `answer`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT voor een tabel `class`
 --
 ALTER TABLE `class`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
--- AUTO_INCREMENT voor een tabel `model`
+-- AUTO_INCREMENT voor een tabel `figure`
 --
-ALTER TABLE `model`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `figure`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
--- AUTO_INCREMENT voor een tabel `preferences`
+-- AUTO_INCREMENT voor een tabel `preference`
 --
-ALTER TABLE `preferences`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `preference`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
--- AUTO_INCREMENT voor een tabel `quiz`
+-- AUTO_INCREMENT voor een tabel `question`
 --
-ALTER TABLE `quiz`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `question`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT voor een tabel `scenario`
 --
 ALTER TABLE `scenario`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT voor een tabel `student`
 --
 ALTER TABLE `student`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT voor een tabel `task`
---
-ALTER TABLE `task`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT voor een tabel `teacher`
 --
 ALTER TABLE `teacher`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- Beperkingen voor geëxporteerde tabellen
 --
-
---
--- Beperkingen voor tabel `model`
---
-ALTER TABLE `model`
-  ADD CONSTRAINT `model_task` FOREIGN KEY (`task_id`) REFERENCES `task` (`id`);
 
 --
 -- Beperkingen voor tabel `scenario`
@@ -285,17 +313,11 @@ ALTER TABLE `student`
   ADD CONSTRAINT `class_id` FOREIGN KEY (`class_id`) REFERENCES `class` (`id`);
 
 --
--- Beperkingen voor tabel `task`
---
-ALTER TABLE `task`
-  ADD CONSTRAINT `task_quiz` FOREIGN KEY (`quiz_id`) REFERENCES `quiz` (`id`);
-
---
 -- Beperkingen voor tabel `teacher`
 --
 ALTER TABLE `teacher`
   ADD CONSTRAINT `teacher_class` FOREIGN KEY (`class_id`) REFERENCES `class` (`id`),
-  ADD CONSTRAINT `teacher_preference` FOREIGN KEY (`preference_id`) REFERENCES `preferences` (`id`);
+  ADD CONSTRAINT `teacher_preference` FOREIGN KEY (`preference_id`) REFERENCES `preference` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
