@@ -1,0 +1,57 @@
+Scenario:
+name: Checking out the tits
+available: true
+figures: 1
+class_id: 1
+storytype: scavenger
+
+Teacher:
+Pietje Puk
+test@test.nl
+test1234
+Preference: 1
+classcode: 1
+
+Preference:
+Layout: 
+Language: nl_NL
+
+Class:
+classcode: ICTCC
+name: Concept & Creation
+
+Student 1:
+classcode: 1
+pincode: 4000
+name: Tim Meermans
+
+Student 2:
+classcode: 1
+pincode: 5000
+name: Robert Bisschop
+
+Student 3:
+classcode: 1
+pincode: 1234
+name: Conor Murphy
+
+Figure:
+name: Tit
+information: tit_info.txt
+task: quizgiver
+location: Resources/Models/tit.unity
+
+Question:
+question: What kind of animal am I?
+answers: 1,2,3
+correctAnswerId: 2
+questions: 1
+
+Answer 1:
+text: A fuckwit
+
+Answer 2:
+text: A tit
+
+Answer 3:
+text: A great tit
