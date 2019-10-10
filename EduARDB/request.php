@@ -1,7 +1,7 @@
 <?php
 namespace eduar;
 
-require_once('RequestHandler.php');
+require_once 'autoload.php';
 
 $requestHandler = new RequestHandler();
 

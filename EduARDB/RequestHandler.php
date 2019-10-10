@@ -1,6 +1,9 @@
 <?php
 namespace eduar;
 
+use eduar\Type\User;
+use eduar\Type\Scenario;
+
 class RequestHandler
 {
 	private $conn;

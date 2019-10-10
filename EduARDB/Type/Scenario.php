@@ -1,8 +1,7 @@
 <?php
+namespace eduar\Type;
 
-
-namespace eduar;
-
+use eduar\Connect;
 
 class Scenario
 {

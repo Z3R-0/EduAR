@@ -1,5 +1,7 @@
 <?php
-namespace eduar;
+namespace eduar\Type;
+
+use eduar\Connect;
 
 class User
 {
