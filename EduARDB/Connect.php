@@ -31,7 +31,7 @@ class Connect
 
 		if (count($result) > 0) {
 			foreach ($result as $row) {
-				echo $row['name'];
+				echo $row;
 			}
 		}
 	}
