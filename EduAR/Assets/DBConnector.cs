@@ -1,24 +1,35 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
-using UnityEngine.UI;
 
 public class DBConnector : MonoBehaviour {
-    private string dbUrl = "http://localhost/eduar/request.php?query=select * from teacher;";
-    // Start is called before the first frame update
-    void Start() {
-        StartCoroutine(GetInfo());
+    private string query;
+    private string dbUrl = "http://localhost/eduar/request.php?";
+
+    private void Start() {
+        GetUser(teacherEmail: "test@test.nl");
+        GetUser(studentName: "Robert Bisschop");
     }
 
-    IEnumerator GetInfo() {
-        UnityWebRequest info_get = UnityWebRequest.Get(dbUrl);
+    public IEnumerator GetUser(bool isTeacher = true, string teacherEmail = null, string studentName = null) {
+        if (isTeacher && teacherEmail != null)
+            query = "select * from teacher where email = " + teacherEmail + ";";
+        else if (isTeacher)
+            query = "select * from teacher;";
+        else if (studentName != null)
+            query = "select * from student where name = "+ studentName + ";";
+        else
+            query = "select * from student;";
+
+        UnityWebRequest info_get = UnityWebRequest.Get(dbUrl + query);
         yield return info_get.SendWebRequest();
 
         if (info_get.isNetworkError || info_get.isHttpError) {
-            Debug.Log(info_get);
+            Debug.LogError("Error ocurred: " + info_get.error);
         } else {
-            Debug.Log(info_get.downloadHandler.text);
+            yield return info_get.downloadHandler.text;
         }
     }
+
+
 }
