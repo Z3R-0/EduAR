@@ -3,16 +3,32 @@ namespace eduar;
 
 class Connect
 {
-	private function getConnection()
-	{
-		$host = 'localhost';
-		$user = 'root';
-		$pass = '';
-		$db = 'eduar';
+	private $host;
+	private $user;
+	private $pass;
+	private $db;
+	private $conn;
 
+	public function __construct()
+	{
+		$this->getDbCredentials();
+		$this->conn = $this->initConnection();
+	}
+
+	private function getDbCredentials()
+	{
+		//TODO Get credentials from settings file?
+		$this->host = 'localhost';
+		$this->user = 'root';
+		$this->pass = '';
+		$this->db = 'eduar';
+	}
+
+	private function initConnection()
+	{
 		try
 		{
-			return new \PDO('mysql:host=' . $host . ';dbname=' . $db, $user, $pass);
+			return new \PDO('mysql:host=' . $this->host . ';dbname=' . $this->db, $this->user, $this->pass);
 		}
 
 		catch
@@ -22,16 +38,20 @@ class Connect
 		}
 	}
 
+	public function getConnection()
+	{
+		return $this->conn;
+	}
+
 	public function getQueryResult($query)
 	{
-		$conn = $this->getConnection();
-		$pdoQuery = $conn->query($query);
+		$pdoQuery = $this->conn->query($query);
 
 		$result = $pdoQuery->fetchAll(\PDO::FETCH_ASSOC);
 
 		if (count($result) > 0) {
 			foreach ($result as $row) {
-				echo $row;
+				echo json_encode($row);
 			}
 		}
 	}
