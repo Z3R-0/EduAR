@@ -53,7 +53,7 @@ public class DBConnector : MonoBehaviour {
 
     // See comments above function GetUserData for info
     private static IEnumerator GetUser(Action<object> callback, bool isTeacher = true, string teacherEmail = null, string studentName = null) {
-        query = "query=";
+        query = "type=User&method=get&query=";
         if (isTeacher && teacherEmail != null)
             query += "select * from teacher where email = '" + teacherEmail + "';";
         else if (isTeacher)
@@ -69,6 +69,7 @@ public class DBConnector : MonoBehaviour {
         if (info_get.isNetworkError || info_get.isHttpError) {
             Debug.LogError("Error ocurred: " + info_get.error);
         } else {
+            Debug.Log("Decoding: " + info_get.downloadHandler.text);
             // See Decoder function for info on workings
             callback(Decoder(info_get.downloadHandler.text, typeof(Teacher).Name));
         }
