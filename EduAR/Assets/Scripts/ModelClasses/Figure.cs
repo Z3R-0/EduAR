@@ -2,8 +2,8 @@
 
 public enum Task {
     QuizGiver,
-    InfoProp,
-    StaticProp
+    Info_Prop,
+    Static_Prop
 }
 
 public enum FigureProperties {

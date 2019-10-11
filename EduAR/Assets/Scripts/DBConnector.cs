@@ -34,10 +34,15 @@ public class DBConnector : MonoBehaviour {
         // Currently used for testing, this is the format to use when asking for data from the database
         // Replace GetUserData with the function that gives the needed info and read it using info[(int) PropertyNameEnum]
         // The PropertyName enum is found in each database class
+        CreateFigureFunc((successful) => {
+            if (successful)
+                Debug.Log("Created a new figure");
+        }, "test", "test", Task.Info_Prop, "test", "test");
+
         DBConnector.GetFigureData((callback) => {
             foreach (var figure in callback) {
                 PropertyInfo[] info = figure.GetType().GetProperties();
-                Debug.Log(info[(int)FigureProperties.Name].GetValue(figure, null));
+                Debug.Log(info[(int)FigureProperties.Task].GetValue(figure, null));
             }
         });
     }
@@ -77,6 +82,10 @@ public class DBConnector : MonoBehaviour {
 
     public static Coroutine CreateScenarioFunc(Action<bool> successful, string name, int available, string figures, int classID, StoryType storytype) {
         return Instance.StartCoroutine(CreateScenario(successful, name, available, figures, classID, storytype));
+    }
+
+    public static Coroutine CreateFigureFunc(Action<bool> successful, string name, string information, Task task, string location, string questions) {
+        return Instance.StartCoroutine(CreateFigure(successful, name, information, task, location, questions));
     }
 
     #endregion
@@ -202,6 +211,22 @@ public class DBConnector : MonoBehaviour {
 
         if (scenario_create.isNetworkError || scenario_create.isHttpError) {
             Debug.LogError("Error occurred: " + scenario_create.error);
+            successful(false);
+        } else {
+            successful(true);
+        }
+    }
+
+    private static IEnumerator CreateFigure(Action<bool> successful, string name, string information, Task task, string location, string questions) {
+        query = "type=Figure&method=create&query=INSERT INTO figure" +
+                "(name,information,task,location,questions)" +
+                "values('" + name + "','" + information + "','" + task + "','" + location + "','" + questions + "');";
+
+        UnityWebRequest figure_create = UnityWebRequest.Get(dbUrl + query);
+        yield return figure_create.SendWebRequest();
+
+        if (figure_create.isNetworkError || figure_create.isHttpError) {
+            Debug.LogError("Error occurred: " + figure_create.error);
             successful(false);
         } else {
             successful(true);
