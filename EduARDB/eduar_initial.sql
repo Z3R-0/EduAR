@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 4.9.0.1
+-- version 4.9.1
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Gegenereerd op: 09 okt 2019 om 13:59
--- Serverversie: 10.4.6-MariaDB
--- PHP-versie: 7.3.8
+-- Generation Time: Oct 11, 2019 at 10:37 AM
+-- Server version: 10.4.8-MariaDB
+-- PHP Version: 7.3.10
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
@@ -25,7 +25,7 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Tabelstructuur voor tabel `answer`
+-- Table structure for table `answer`
 --
 
 CREATE TABLE `answer` (
@@ -34,7 +34,7 @@ CREATE TABLE `answer` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Gegevens worden geëxporteerd voor tabel `answer`
+-- Dumping data for table `answer`
 --
 
 INSERT INTO `answer` (`id`, `text`) VALUES
@@ -45,7 +45,7 @@ INSERT INTO `answer` (`id`, `text`) VALUES
 -- --------------------------------------------------------
 
 --
--- Tabelstructuur voor tabel `class`
+-- Table structure for table `class`
 --
 
 CREATE TABLE `class` (
@@ -55,7 +55,7 @@ CREATE TABLE `class` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Gegevens worden geëxporteerd voor tabel `class`
+-- Dumping data for table `class`
 --
 
 INSERT INTO `class` (`id`, `classcode`, `name`) VALUES
@@ -64,7 +64,7 @@ INSERT INTO `class` (`id`, `classcode`, `name`) VALUES
 -- --------------------------------------------------------
 
 --
--- Tabelstructuur voor tabel `figure`
+-- Table structure for table `figure`
 --
 
 CREATE TABLE `figure` (
@@ -77,7 +77,7 @@ CREATE TABLE `figure` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Gegevens worden geëxporteerd voor tabel `figure`
+-- Dumping data for table `figure`
 --
 
 INSERT INTO `figure` (`id`, `name`, `information`, `task`, `location`, `questions`) VALUES
@@ -86,7 +86,7 @@ INSERT INTO `figure` (`id`, `name`, `information`, `task`, `location`, `question
 -- --------------------------------------------------------
 
 --
--- Tabelstructuur voor tabel `preference`
+-- Table structure for table `preference`
 --
 
 CREATE TABLE `preference` (
@@ -96,7 +96,7 @@ CREATE TABLE `preference` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Gegevens worden geëxporteerd voor tabel `preference`
+-- Dumping data for table `preference`
 --
 
 INSERT INTO `preference` (`id`, `layout`, `language`) VALUES
@@ -105,7 +105,7 @@ INSERT INTO `preference` (`id`, `layout`, `language`) VALUES
 -- --------------------------------------------------------
 
 --
--- Tabelstructuur voor tabel `question`
+-- Table structure for table `question`
 --
 
 CREATE TABLE `question` (
@@ -116,7 +116,7 @@ CREATE TABLE `question` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Gegevens worden geëxporteerd voor tabel `question`
+-- Dumping data for table `question`
 --
 
 INSERT INTO `question` (`id`, `question`, `answers`, `correct_answer_id`) VALUES
@@ -125,7 +125,7 @@ INSERT INTO `question` (`id`, `question`, `answers`, `correct_answer_id`) VALUES
 -- --------------------------------------------------------
 
 --
--- Tabelstructuur voor tabel `scenario`
+-- Table structure for table `scenario`
 --
 
 CREATE TABLE `scenario` (
@@ -138,7 +138,7 @@ CREATE TABLE `scenario` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Gegevens worden geëxporteerd voor tabel `scenario`
+-- Dumping data for table `scenario`
 --
 
 INSERT INTO `scenario` (`id`, `name`, `available`, `figures`, `class_id`, `storytype`) VALUES
@@ -147,7 +147,7 @@ INSERT INTO `scenario` (`id`, `name`, `available`, `figures`, `class_id`, `story
 -- --------------------------------------------------------
 
 --
--- Tabelstructuur voor tabel `student`
+-- Table structure for table `student`
 --
 
 CREATE TABLE `student` (
@@ -158,7 +158,7 @@ CREATE TABLE `student` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Gegevens worden geëxporteerd voor tabel `student`
+-- Dumping data for table `student`
 --
 
 INSERT INTO `student` (`id`, `class_id`, `pincode`, `name`) VALUES
@@ -169,155 +169,153 @@ INSERT INTO `student` (`id`, `class_id`, `pincode`, `name`) VALUES
 -- --------------------------------------------------------
 
 --
--- Tabelstructuur voor tabel `teacher`
+-- Table structure for table `teacher`
 --
 
 CREATE TABLE `teacher` (
   `id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
   `email` varchar(255) NOT NULL,
-  `preference_id` int(11) NOT NULL,
+  `preference_id` int(11) DEFAULT NULL,
   `password` varchar(255) NOT NULL,
   `class_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Gegevens worden geëxporteerd voor tabel `teacher`
+-- Dumping data for table `teacher`
 --
 
 INSERT INTO `teacher` (`id`, `name`, `email`, `preference_id`, `password`, `class_id`) VALUES
 (3, 'Pietje Puk', 'test@test.nl', 1, '16d7a4fca7442dda3ad93c9a726597e4', 1);
 
 --
--- Indexen voor geëxporteerde tabellen
+-- Indexes for dumped tables
 --
 
 --
--- Indexen voor tabel `answer`
+-- Indexes for table `answer`
 --
 ALTER TABLE `answer`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexen voor tabel `class`
+-- Indexes for table `class`
 --
 ALTER TABLE `class`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexen voor tabel `figure`
+-- Indexes for table `figure`
 --
 ALTER TABLE `figure`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexen voor tabel `preference`
+-- Indexes for table `preference`
 --
 ALTER TABLE `preference`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexen voor tabel `question`
+-- Indexes for table `question`
 --
 ALTER TABLE `question`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexen voor tabel `scenario`
+-- Indexes for table `scenario`
 --
 ALTER TABLE `scenario`
   ADD PRIMARY KEY (`id`),
   ADD KEY `scenario_class` (`class_id`);
 
 --
--- Indexen voor tabel `student`
+-- Indexes for table `student`
 --
 ALTER TABLE `student`
   ADD PRIMARY KEY (`id`),
   ADD KEY `student_class` (`class_id`) USING BTREE;
 
 --
--- Indexen voor tabel `teacher`
+-- Indexes for table `teacher`
 --
 ALTER TABLE `teacher`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `teacher_class` (`class_id`),
-  ADD KEY `teacher_preference` (`preference_id`);
+  ADD KEY `teacher_class` (`class_id`);
 
 --
--- AUTO_INCREMENT voor geëxporteerde tabellen
+-- AUTO_INCREMENT for dumped tables
 --
 
 --
--- AUTO_INCREMENT voor een tabel `answer`
+-- AUTO_INCREMENT for table `answer`
 --
 ALTER TABLE `answer`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
--- AUTO_INCREMENT voor een tabel `class`
+-- AUTO_INCREMENT for table `class`
 --
 ALTER TABLE `class`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
--- AUTO_INCREMENT voor een tabel `figure`
+-- AUTO_INCREMENT for table `figure`
 --
 ALTER TABLE `figure`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
--- AUTO_INCREMENT voor een tabel `preference`
+-- AUTO_INCREMENT for table `preference`
 --
 ALTER TABLE `preference`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
--- AUTO_INCREMENT voor een tabel `question`
+-- AUTO_INCREMENT for table `question`
 --
 ALTER TABLE `question`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
--- AUTO_INCREMENT voor een tabel `scenario`
+-- AUTO_INCREMENT for table `scenario`
 --
 ALTER TABLE `scenario`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
--- AUTO_INCREMENT voor een tabel `student`
+-- AUTO_INCREMENT for table `student`
 --
 ALTER TABLE `student`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
--- AUTO_INCREMENT voor een tabel `teacher`
+-- AUTO_INCREMENT for table `teacher`
 --
 ALTER TABLE `teacher`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
--- Beperkingen voor geëxporteerde tabellen
+-- Constraints for dumped tables
 --
 
 --
--- Beperkingen voor tabel `scenario`
+-- Constraints for table `scenario`
 --
 ALTER TABLE `scenario`
   ADD CONSTRAINT `scenario_class` FOREIGN KEY (`class_id`) REFERENCES `class` (`id`);
 
 --
--- Beperkingen voor tabel `student`
+-- Constraints for table `student`
 --
 ALTER TABLE `student`
   ADD CONSTRAINT `class_id` FOREIGN KEY (`class_id`) REFERENCES `class` (`id`);
 
 --
--- Beperkingen voor tabel `teacher`
+-- Constraints for table `teacher`
 --
 ALTER TABLE `teacher`
-  ADD CONSTRAINT `teacher_class` FOREIGN KEY (`class_id`) REFERENCES `class` (`id`),
-  ADD CONSTRAINT `teacher_preference` FOREIGN KEY (`preference_id`) REFERENCES `preference` (`id`);
+  ADD CONSTRAINT `teacher_class` FOREIGN KEY (`class_id`) REFERENCES `class` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

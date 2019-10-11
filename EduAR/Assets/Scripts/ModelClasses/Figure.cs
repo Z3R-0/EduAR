@@ -7,6 +7,7 @@ public enum Task {
 }
 
 public enum FigureProperties {
+    Id,
     Name,
     Information,
     Task,
@@ -15,6 +16,7 @@ public enum FigureProperties {
 }
 
 public class Figure {
+    public int Id { get; set; }
     public string Name { get; set; }
     public string Information { get; set; }
     public Task Task { get; set; }

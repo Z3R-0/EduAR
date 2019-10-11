@@ -1,4 +1,5 @@
 ﻿public enum PreferenceProperties {
+    Id,
     Layout,
     Language
 }
@@ -15,6 +16,12 @@ public enum Language {
 }
 
 public class Preference {
+    public int Id { get; set; }
     public Layout Layout { get; set; }
     public Language Language { get; set; }
+
+    public Preference() {
+        Layout = Layout.Normal;
+        Language = Language.nl_NL;
+    }
 }
