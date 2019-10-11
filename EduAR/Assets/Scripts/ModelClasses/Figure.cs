@@ -21,5 +21,5 @@ public class Figure {
     public string Information { get; set; }
     public Task Task { get; set; }
     public string Location { get; set; }
-    public List<Question> Questions { get; set; }
+    public string Questions { get; set; }
 }
