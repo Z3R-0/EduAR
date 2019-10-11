@@ -31,9 +31,9 @@ class User
 	public function create($query)
 	{
 		if($this->conn->exec($query) === false) {
-			return "Error occured while creating User";
+			return "Error occurred while creating User";
 		} else {
-			return "User succesfully created";
+			return "User successfully created";
 		}
 	}
 
@@ -41,7 +41,7 @@ class User
 	{
 		$result = $this->conn->exec($query);
 		if($result === false) {
-			return "Error occured while updating User";
+			return "Error occurred while updating User";
 		} else {
 			return $result;
 		}
@@ -50,9 +50,9 @@ class User
 	public function delete($query)
 	{
 		if($this->conn->exec($query) === false) {
-			return "Error occured while trying to remove User";
+			return "Error occurred while trying to remove User";
 		} else {
-			return "User succesfully removed";
+			return "User successfully removed";
 		}
 	}
 
