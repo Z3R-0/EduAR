@@ -11,7 +11,7 @@ public enum ScenarioProperties {
     Name,
     Available,
     Figures,
-    ClassID,
+    Class_ID,
     StoryType
 }
 
@@ -20,6 +20,6 @@ public class Scenario {
     public string Name { get; set; }
     public int Available { get; set; }
     public string Figures { get; set; }
-    public int ClassID { get; set; }
+    public int Class_ID { get; set; }
     public StoryType StoryType { get; set; }
 }

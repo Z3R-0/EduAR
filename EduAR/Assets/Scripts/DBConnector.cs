@@ -34,17 +34,75 @@ public class DBConnector : MonoBehaviour {
         // Currently used for testing, this is the format to use when asking for data from the database
         // Replace GetUserData with the function that gives the needed info and read it using info[(int) PropertyNameEnum]
         // The PropertyName enum is found in each database class
-        CreateFigureFunc((successful) => {
+        /*
+        CreateAnswerFunc((successful) => {
             if (successful)
-                Debug.Log("Created a new figure");
-        }, "test", "test", Task.Info_Prop, "test", "test");
+                Debug.Log("Created a new answer");
+        }, "answer text test");
+        */
 
-        DBConnector.GetFigureData((callback) => {
-            foreach (var figure in callback) {
-                PropertyInfo[] info = figure.GetType().GetProperties();
-                Debug.Log(info[(int)FigureProperties.Task].GetValue(figure, null));
+        DBConnector.GetScenarioData((callback) => {
+            Debug.Log("---------------------Scenario DATA---------------------");
+            foreach (var scenario in callback) {
+                PropertyInfo[] info = scenario.GetType().GetProperties();
+                Debug.Log("Scenario ID: " + info[(int)ScenarioProperties.Id].GetValue(scenario, null));
+                Debug.Log("Scenario Name: " + info[(int)ScenarioProperties.Name].GetValue(scenario, null));
+                Debug.Log("Scenario Available: " + info[(int)ScenarioProperties.Available].GetValue(scenario, null));
+                Debug.Log("Scenario Figures: " + info[(int)ScenarioProperties.Figures].GetValue(scenario, null));
+                Debug.Log("Scenario ClassID: " + info[(int)ScenarioProperties.Class_ID].GetValue(scenario, null));
+                Debug.Log("Scenario Storytype: " + info[(int)ScenarioProperties.StoryType].GetValue(scenario, null));
             }
         });
+
+        DBConnector.GetQuestionData((callback) => {
+            Debug.Log("---------------------Question DATA---------------------");
+            foreach (var question in callback) {
+                PropertyInfo[] info = question.GetType().GetProperties();
+                Debug.Log("Question ID: " + info[(int)QuestionProperties.Id].GetValue(question, null));
+                Debug.Log("Question Text: " + info[(int)QuestionProperties.Question].GetValue(question, null));
+                Debug.Log("Question Correct Answer: " + info[(int)QuestionProperties.CorrectAnswer].GetValue(question, null));
+                Debug.Log("Question Answers: " + info[(int)QuestionProperties.Answers].GetValue(question, null));
+            }
+        });
+
+        
+        DBConnector.GetFigureData((callback) => {
+            Debug.Log("---------------------Figure DATA---------------------");
+            foreach (var figure in callback) {
+                PropertyInfo[] info = figure.GetType().GetProperties();
+                Debug.Log("Figure ID: " + info[(int)FigureProperties.Id].GetValue(figure, null));
+                Debug.Log("Figure info: " + info[(int)FigureProperties.Information].GetValue(figure, null));
+                Debug.Log("Figure location: " + info[(int)FigureProperties.Location].GetValue(figure, null));
+                Debug.Log("Figure name: " + info[(int)FigureProperties.Name].GetValue(figure, null));
+                Debug.Log("Figure questions: " + info[(int)FigureProperties.Questions].GetValue(figure, null));
+                Debug.Log("Figure task: " + info[(int)FigureProperties.Task].GetValue(figure, null));
+            }
+        });
+
+        
+        DBConnector.GetAnswerData((callback) => {
+            Debug.Log("---------------------Answer DATA---------------------");
+            foreach (var answer in callback) {
+                PropertyInfo[] info = answer.GetType().GetProperties();
+                Debug.Log("Answer ID: " + info[(int)AnswerProperties.Id].GetValue(answer, null));
+                Debug.Log("Answer Text: " + info[(int)AnswerProperties.Text].GetValue(answer, null));
+            }
+        });
+        /*
+        CreateClassFunc((successful) => {
+            if (successful)
+                Debug.Log("Created a new class");
+        }, "ICTGS", "Game Studio");
+
+        DBConnector.GetClassData((callback) => {
+            foreach (var classObj in callback) {
+                PropertyInfo[] info = classObj.GetType().GetProperties();
+                Debug.Log("Class ID: " + info[(int)ClassProperties.Id].GetValue(classObj, null));
+                Debug.Log("Class code: " + info[(int)ClassProperties.ClassCode].GetValue(classObj, null));
+                Debug.Log("Class name: " + info[(int)ClassProperties.Name].GetValue(classObj, null));
+            }
+        });
+        */
     }
     // -------END OF TESTING PURPOSES-------
 
@@ -68,6 +126,18 @@ public class DBConnector : MonoBehaviour {
         return Instance.StartCoroutine(GetFigure(callback, id, name, task));
     }
 
+    public static Coroutine GetQuestionData(Action<IList> callback, int? id = null) {
+        return Instance.StartCoroutine(GetQuestion(callback, id));
+    }
+
+    public static Coroutine GetAnswerData(Action<IList> callback, int? id = null) {
+        return Instance.StartCoroutine(GetAnswer(callback, id));
+    }
+
+    public static Coroutine GetClassData(Action<IList> callback, int? id = null, string classCode = null, string name = null) {
+        return Instance.StartCoroutine(GetClass(callback, id, classCode, name));
+    }
+
     #endregion
 
     #region Database Interface Poster Functions
@@ -86,6 +156,18 @@ public class DBConnector : MonoBehaviour {
 
     public static Coroutine CreateFigureFunc(Action<bool> successful, string name, string information, Task task, string location, string questions) {
         return Instance.StartCoroutine(CreateFigure(successful, name, information, task, location, questions));
+    }
+
+    public static Coroutine CreateQuestionFunc(Action<bool> successful, string questionText, string answers, int correctAnswerId) {
+        return Instance.StartCoroutine(CreateQuestion(successful, questionText, answers, correctAnswerId));
+    }
+
+    public static Coroutine CreateAnswerFunc(Action<bool> successful, string text) {
+        return Instance.StartCoroutine(CreateAnswer(successful, text));
+    }
+
+    public static Coroutine CreateClassFunc(Action<bool> successful, string classCode, string name) {
+        return Instance.StartCoroutine(CreateClass(successful, classCode, name));
     }
 
     #endregion
@@ -165,6 +247,76 @@ public class DBConnector : MonoBehaviour {
         }
     }
 
+    private static IEnumerator GetQuestion(Action<IList> callback, int? id = null) {
+        query = "type=Question&method=get&query=";
+
+        if (id != null)
+            query += "SELECT * FROM question WHERE id = " + id + ";";
+        else
+            query += "SELECT * FROM question;";
+
+        UnityWebRequest question_get = UnityWebRequest.Get(dbUrl + query);
+        yield return question_get.SendWebRequest();
+
+        if (question_get.isNetworkError || question_get.isHttpError) {
+            Debug.LogError("Error occurred: " + question_get.error);
+        } else {
+            // See Decoder function for info on workings
+            Debug.Log(question_get.downloadHandler.text);
+            callback(Decoder(question_get.downloadHandler.text, typeof(Question).Name));
+        }
+    }
+
+    private static IEnumerator GetAnswer(Action<IList> callback, int? id = null) {
+        // REMOVE THIS LATER PLS ----------------------------------
+        yield return new WaitForSeconds(1f);
+
+        query = "type=Answer&method=get&query=";
+
+        if (id != null)
+            query += "SELECT * FROM answer WHERE id = " + id + ";";
+        else
+            query += "SELECT * FROM answer;";
+
+        UnityWebRequest question_get = UnityWebRequest.Get(dbUrl + query);
+        yield return question_get.SendWebRequest();
+
+        if (question_get.isNetworkError || question_get.isHttpError) {
+            Debug.LogError("Error occurred: " + question_get.error);
+        } else {
+            // See Decoder function for info on workings
+            Debug.Log(question_get.downloadHandler.text);
+            callback(Decoder(question_get.downloadHandler.text, typeof(Question).Name));
+        }
+    }
+
+    private static IEnumerator GetClass(Action<IList> callback, int? id = null, string classCode = null, string name = null) {
+        // REMOVE THIS LATER PLS ----------------------------------
+        yield return new WaitForSeconds(1f);
+
+        query = "type=Class&method=get&query=";
+
+        if (id != null)
+            query += "SELECT * FROM class WHERE id = " + id + ";";
+        else if (classCode != null)
+            query += "SELECT * FROM class WHERE classcode = " + classCode + ";";
+        else if (name != null)
+            query += "SELECT * FROM class WHERE name LIKE '" + name + "';";
+        else
+            query += "SELECT * FROM class";
+
+        UnityWebRequest class_get = UnityWebRequest.Get(dbUrl + query);
+        yield return class_get.SendWebRequest();
+
+        if (class_get.isNetworkError || class_get.isHttpError) {
+            Debug.LogError("Error occurred: " + class_get.error);
+        } else {
+            // See Decoder function for info on workings
+            Debug.Log(class_get.downloadHandler.text);
+            callback(Decoder(class_get.downloadHandler.text, typeof(Question).Name));
+        }
+    }
+
     #endregion
 
     #region Database Posters
@@ -227,6 +379,54 @@ public class DBConnector : MonoBehaviour {
 
         if (figure_create.isNetworkError || figure_create.isHttpError) {
             Debug.LogError("Error occurred: " + figure_create.error);
+            successful(false);
+        } else {
+            successful(true);
+        }
+    }
+
+    private static IEnumerator CreateQuestion(Action<bool> successful, string questionText, string answers, int correctAnswerId) {
+        query = "type=Question&method=create&query=INSERT INTO question" +
+                "(question_text,answers,correct_answer_id)" +
+                "values('" + questionText + "','" + answers + "'," + correctAnswerId + ")";
+
+        UnityWebRequest answer_create = UnityWebRequest.Get(dbUrl + query);
+        yield return answer_create.SendWebRequest();
+
+        if (answer_create.isNetworkError || answer_create.isHttpError) {
+            Debug.LogError("Error occurred: " + answer_create.error);
+            successful(false);
+        } else {
+            successful(true);
+        }
+    }
+
+    private static IEnumerator CreateAnswer(Action<bool> successful, string text) {
+        query = "type=Answer&method=create&query=INSERT INTO question" +
+                "(text)" +
+                "values('" + text + "');";
+
+        UnityWebRequest answer_create = UnityWebRequest.Get(dbUrl + query);
+        yield return answer_create.SendWebRequest();
+
+        if (answer_create.isNetworkError || answer_create.isHttpError) {
+            Debug.LogError("Error occurred: " + answer_create.error);
+            successful(false);
+        } else {
+            successful(true);
+        }
+    }
+
+    private static IEnumerator CreateClass(Action<bool> successful, string classCode, string name) {
+        query = "type=Class&method=create&query=INSERT INTO class" +
+                "(classcode, name)" +
+                "values('" + classCode + "','" + name + "');";
+
+        UnityWebRequest class_create = UnityWebRequest.Get(dbUrl + query);
+        yield return class_create.SendWebRequest();
+
+        if (class_create.isNetworkError || class_create.isHttpError) {
+            Debug.LogError("Error occurred: " + class_create.error);
             successful(false);
         } else {
             successful(true);
