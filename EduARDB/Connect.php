@@ -8,24 +8,27 @@ class Connect
 	private $pass;
 	private $db;
 	private $conn;
+	private $ini;
 
 	public function __construct()
 	{
+		$this->ini = parse_ini_file('settings.ini');
+
 		$this->getDbCredentials();
 		$this->conn = $this->initConnection();
 	}
 
 	private function getDbCredentials()
 	{
-		//TODO Get credentials from settings file?
-		$this->host = 'localhost';
-		$this->user = 'root';
-		$this->pass = '';
-		$this->db = 'eduar';
+		$this->host = $this->ini['db_host'];
+		$this->user = $this->ini['db_user'];
+		$this->pass = $this->ini['db_pass'];
+		$this->db = $this->ini['db_name'];
 	}
 
 	private function initConnection()
 	{
+		var_dump($this->ini);
 		try
 		{
 			return new \PDO('mysql:host=' . $this->host . ';dbname=' . $this->db, $this->user, $this->pass);
@@ -41,18 +44,5 @@ class Connect
 	public function getConnection()
 	{
 		return $this->conn;
-	}
-
-	public function getQueryResult($query)
-	{
-		$pdoQuery = $this->conn->query($query);
-
-		$result = $pdoQuery->fetchAll(\PDO::FETCH_ASSOC);
-
-		if (count($result) > 0) {
-			foreach ($result as $row) {
-				echo json_encode($row);
-			}
-		}
 	}
 }
