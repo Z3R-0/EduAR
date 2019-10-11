@@ -9,7 +9,7 @@ class Scenario
 
 	public function __construct(Connect $connect)
 	{
-		$this->conn = $connect;
+		$this->conn = $connect->getConnection();
 	}
 
 	public function get($query)

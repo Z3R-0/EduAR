@@ -3,7 +3,8 @@ namespace eduar;
 
 require_once 'autoload.php';
 
-$requestHandler = new RequestHandler();
+$connect = new Connect();
+$requestHandler = new RequestHandler($connect);
 
 $type = $_GET['type'];
 $method = $_GET['method'];
