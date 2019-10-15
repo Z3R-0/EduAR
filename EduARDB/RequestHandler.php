@@ -56,8 +56,12 @@ class RequestHandler
 		}
 	}
 
-	public function update($query, $table)
+	public function update($query)
 	{
+		if(preg_match('/password = \'(.*?)\'/', $query, $match) !== false) {
+			$pass = md5($match[1]);
+			$query = preg_replace('/password = \''. $match[1].'\'/', 'password = \''. $pass.'\'', $query);
+		}
 		$result = $this->conn->exec($query);
 		if ($result === false) {
 			return "Error occurred while updating User";
