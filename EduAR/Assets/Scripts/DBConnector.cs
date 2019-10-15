@@ -396,4 +396,8 @@ public class DBConnector : MonoBehaviour {
                 return null;
         }
     }
+
+    public void ResetPassword() {
+        Application.OpenURL("http://localhost/eduar/passwordreset.php");
+    }
 }
