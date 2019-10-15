@@ -213,9 +213,6 @@ public class DBConnector : MonoBehaviour {
     }
 
     private static IEnumerator GetAnswer(Action<IList> callback, int? id = null) {
-        // REMOVE THIS LATER PLS ----------------------------------
-        yield return new WaitForSeconds(1f);
-
         query = "type=Answer&method=get&query=";
 
         if (id != null)
@@ -236,9 +233,6 @@ public class DBConnector : MonoBehaviour {
     }
 
     private static IEnumerator GetClass(Action<IList> callback, int? id = null, string classCode = null, string name = null) {
-        // REMOVE THIS LATER PLS ----------------------------------
-        yield return new WaitForSeconds(1f);
-
         query = "type=Class&method=get&query=";
 
         if (id != null)
