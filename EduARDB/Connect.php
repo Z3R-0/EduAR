@@ -28,7 +28,6 @@ class Connect
 
 	private function initConnection()
 	{
-		var_dump($this->ini);
 		try
 		{
 			return new \PDO('mysql:host=' . $this->host . ';dbname=' . $this->db, $this->user, $this->pass);
