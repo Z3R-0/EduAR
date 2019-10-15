@@ -3,16 +3,34 @@ namespace eduar;
 
 class Connect
 {
-	private function getConnection()
-	{
-		$host = 'localhost';
-		$user = 'root';
-		$pass = '';
-		$db = 'eduar';
+	private $host;
+	private $user;
+	private $pass;
+	private $db;
+	private $conn;
+	private $ini;
 
+	public function __construct()
+	{
+		$this->ini = parse_ini_file('settings.ini');
+
+		$this->getDbCredentials();
+		$this->conn = $this->initConnection();
+	}
+
+	private function getDbCredentials()
+	{
+		$this->host = $this->ini['db_host'];
+		$this->user = $this->ini['db_user'];
+		$this->pass = $this->ini['db_pass'];
+		$this->db = $this->ini['db_name'];
+	}
+
+	private function initConnection()
+	{
 		try
 		{
-			return new \PDO('mysql:host=' . $host . ';dbname=' . $db, $user, $pass);
+			return new \PDO('mysql:host=' . $this->host . ';dbname=' . $this->db, $this->user, $this->pass);
 		}
 
 		catch
@@ -22,17 +40,8 @@ class Connect
 		}
 	}
 
-	public function getQueryResult($query)
+	public function getConnection()
 	{
-		$conn = $this->getConnection();
-		$pdoQuery = $conn->query($query);
-
-		$result = $pdoQuery->fetchAll(\PDO::FETCH_ASSOC);
-
-		if (count($result) > 0) {
-			foreach ($result as $row) {
-				echo $row['name'];
-			}
-		}
+		return $this->conn;
 	}
 }

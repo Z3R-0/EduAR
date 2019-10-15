@@ -1,10 +1,13 @@
 <?php
 namespace eduar;
 
-require_once('Connect.php');
+require_once 'autoload.php';
 
-$connector = new Connect();
+$connect = new Connect();
+$requestHandler = new RequestHandler($connect);
 
-$param = $_GET['query'];
+$type = $_GET['type'];
+$method = $_GET['method'];
+$query = $_GET['query'];
 
-echo $connector->getQueryResult($param);
+echo json_encode($requestHandler->execute($type, $method, $query));
