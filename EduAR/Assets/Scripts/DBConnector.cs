@@ -28,66 +28,11 @@ public class DBConnector : MonoBehaviour {
         }
     }
 
-
     // -------TESTING PURPOSES-------
     private void Start() {
         // Currently used for testing, this is the format to use when asking for data from the database
-        // Replace GetUserData with the function that gives the needed info and read it using info[(int) PropertyNameEnum]
+        // Replace GetUserData with the function that gives the needed info and read it using info[(int) enum PropertyName]
         // The PropertyName enum is found in each database class
-        /*
-        CreateAnswerFunc((successful) => {
-            if (successful)
-                Debug.Log("Created a new answer");
-        }, "answer text test");
-        */
-
-        DBConnector.GetScenarioData((callback) => {
-            Debug.Log("---------------------Scenario DATA---------------------");
-            foreach (var scenario in callback) {
-                PropertyInfo[] info = scenario.GetType().GetProperties();
-                Debug.Log("Scenario ID: " + info[(int)ScenarioProperties.Id].GetValue(scenario, null));
-                Debug.Log("Scenario Name: " + info[(int)ScenarioProperties.Name].GetValue(scenario, null));
-                Debug.Log("Scenario Available: " + info[(int)ScenarioProperties.Available].GetValue(scenario, null));
-                Debug.Log("Scenario Figures: " + info[(int)ScenarioProperties.Figures].GetValue(scenario, null));
-                Debug.Log("Scenario ClassID: " + info[(int)ScenarioProperties.Class_ID].GetValue(scenario, null));
-                Debug.Log("Scenario Storytype: " + info[(int)ScenarioProperties.StoryType].GetValue(scenario, null));
-            }
-        });
-
-        DBConnector.GetQuestionData((callback) => {
-            Debug.Log("---------------------Question DATA---------------------");
-            foreach (var question in callback) {
-                PropertyInfo[] info = question.GetType().GetProperties();
-                Debug.Log("Question ID: " + info[(int)QuestionProperties.Id].GetValue(question, null));
-                Debug.Log("Question Text: " + info[(int)QuestionProperties.Question].GetValue(question, null));
-                Debug.Log("Question Correct Answer: " + info[(int)QuestionProperties.CorrectAnswer].GetValue(question, null));
-                Debug.Log("Question Answers: " + info[(int)QuestionProperties.Answers].GetValue(question, null));
-            }
-        });
-
-        
-        DBConnector.GetFigureData((callback) => {
-            Debug.Log("---------------------Figure DATA---------------------");
-            foreach (var figure in callback) {
-                PropertyInfo[] info = figure.GetType().GetProperties();
-                Debug.Log("Figure ID: " + info[(int)FigureProperties.Id].GetValue(figure, null));
-                Debug.Log("Figure info: " + info[(int)FigureProperties.Information].GetValue(figure, null));
-                Debug.Log("Figure location: " + info[(int)FigureProperties.Location].GetValue(figure, null));
-                Debug.Log("Figure name: " + info[(int)FigureProperties.Name].GetValue(figure, null));
-                Debug.Log("Figure questions: " + info[(int)FigureProperties.Questions].GetValue(figure, null));
-                Debug.Log("Figure task: " + info[(int)FigureProperties.Task].GetValue(figure, null));
-            }
-        });
-
-        
-        DBConnector.GetAnswerData((callback) => {
-            Debug.Log("---------------------Answer DATA---------------------");
-            foreach (var answer in callback) {
-                PropertyInfo[] info = answer.GetType().GetProperties();
-                Debug.Log("Answer ID: " + info[(int)AnswerProperties.Id].GetValue(answer, null));
-                Debug.Log("Answer Text: " + info[(int)AnswerProperties.Text].GetValue(answer, null));
-            }
-        });
         /*
         CreateClassFunc((successful) => {
             if (successful)
@@ -286,7 +231,7 @@ public class DBConnector : MonoBehaviour {
         } else {
             // See Decoder function for info on workings
             Debug.Log(question_get.downloadHandler.text);
-            callback(Decoder(question_get.downloadHandler.text, typeof(Question).Name));
+            callback(Decoder(question_get.downloadHandler.text, typeof(Answer).Name));
         }
     }
 
@@ -313,7 +258,7 @@ public class DBConnector : MonoBehaviour {
         } else {
             // See Decoder function for info on workings
             Debug.Log(class_get.downloadHandler.text);
-            callback(Decoder(class_get.downloadHandler.text, typeof(Question).Name));
+            callback(Decoder(class_get.downloadHandler.text, typeof(Class).Name));
         }
     }
 
