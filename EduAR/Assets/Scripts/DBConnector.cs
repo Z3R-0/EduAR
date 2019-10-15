@@ -398,15 +398,17 @@ public class DBConnector : MonoBehaviour {
     }
 
     public void ResetPassword() {
-        string email;
+        string email = null;
 
         GetUserData((callback) => {
             foreach (var teacher in callback) {
                 PropertyInfo[] info = teacher.GetType().GetProperties();
                 email = info[(int)TeacherProperties.Email].GetValue(teacher, null).ToString();
             }
-        },teacherEmail: "test@test.nl");
 
-        Application.OpenURL("http://localhost/eduar/passwordreset.php?" + email);
+            Debug.Log(email);
+
+            Application.OpenURL("http://localhost/eduar/passwordreset.php?" + email);
+        },teacherEmail: "test@test.nl");
     }
 }
