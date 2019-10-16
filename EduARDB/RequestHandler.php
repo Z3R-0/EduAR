@@ -31,7 +31,7 @@ class RequestHandler
 		}
 	}
 
-	public function get($query)
+	public function get($query, $options = null)
 	{
 		$pdoQuery = $this->conn->query($query);
 		$result = $pdoQuery->fetchAll(\PDO::FETCH_ASSOC);
@@ -47,7 +47,7 @@ class RequestHandler
 		}
 	}
 
-	public function create($query)
+	public function create($query, $options = null)
 	{
 		if ($this->conn->exec($query) === false) {
 			return "Error occurred while creating User";
@@ -56,21 +56,29 @@ class RequestHandler
 		}
 	}
 
-	public function update($query)
+	public function update($query, $options = null)
 	{
 		if(preg_match('/password = \'(.*?)\'/', $query, $match) !== false) {
 			$pass = md5($match[1]);
 			$query = preg_replace('/password = \''. $match[1].'\'/', 'password = \''. $pass.'\'', $query);
 		}
 		$result = $this->conn->exec($query);
+
 		if ($result === false) {
 			return "Error occurred while updating User";
 		} else {
+			if(!empty($options)) {
+				$type = $options['type'];
+				$token = $options['token'];
+				if ($type == 'pass_reset') {
+					$this->conn->exec("UPDATE teacher SET password_reset_token = NULL, password_reset_expiration = NULL WHERE password_reset_token = '$token';");
+				}
+			}
 			return $result;
 		}
 	}
 
-	public function delete($query)
+	public function delete($query, $options = null)
 	{
 		if ($this->conn->exec($query) === false) {
 			return "Error occurred while trying to remove User";
