@@ -409,8 +409,6 @@ public class DBConnector : MonoBehaviour {
         GetUserData((callback) => {
             foreach (var teacher in callback) {
                 PropertyInfo[] info = teacher.GetType().GetProperties();
-                Debug.Log("email in DB: " + info[(int)TeacherProperties.Email].GetValue(teacher, null).ToString());
-                Debug.Log("password in DB: " + info[(int)TeacherProperties.Password].GetValue(teacher, null).ToString());
                 if (email == info[(int)TeacherProperties.Email].GetValue(teacher, null).ToString() && password == info[(int)TeacherProperties.Password].GetValue(teacher, null).ToString()) {
                     GameObject.Find("ErrorBuffer").GetComponent<Text>().text = "Logging in...";
                     GameObject.Find("ErrorBuffer").GetComponent<Text>().color = Color.green;
@@ -430,9 +428,6 @@ public class DBConnector : MonoBehaviour {
                 PropertyInfo[] info = teacher.GetType().GetProperties();
                 email = info[(int)TeacherProperties.Email].GetValue(teacher, null).ToString();
             }
-
-            Debug.Log(email);
-
             Application.OpenURL("http://localhost/eduar/passwordreset.php?" + email);
         },teacherEmail: "test@test.nl");
     }
