@@ -5,6 +5,8 @@ using UnityEngine.Networking;
 using Newtonsoft.Json;
 using System.Reflection;
 using System.Collections.Generic;
+using System.Text;
+using UnityEngine.UI;
 
 public class DBConnector : MonoBehaviour {
     // Database interaction variables
@@ -397,6 +399,29 @@ public class DBConnector : MonoBehaviour {
         }
     }
 
+    public void LogIn() {
+        string email = GameObject.Find("EmailInputField").GetComponent<InputField>().text;
+        Debug.Log("email: " + email);
+        string password = GameObject.Find("PasswordInputField").GetComponent<InputField>().text;
+        Debug.Log("password: " + password);
+        password = CreateMD5(password).ToLower();
+        Debug.Log("Encrypted password: " + password);
+        GetUserData((callback) => {
+            foreach (var teacher in callback) {
+                PropertyInfo[] info = teacher.GetType().GetProperties();
+                Debug.Log("email in DB: " + info[(int)TeacherProperties.Email].GetValue(teacher, null).ToString());
+                Debug.Log("password in DB: " + info[(int)TeacherProperties.Password].GetValue(teacher, null).ToString());
+                if (email == info[(int)TeacherProperties.Email].GetValue(teacher, null).ToString() && password == info[(int)TeacherProperties.Password].GetValue(teacher, null).ToString()) {
+                    GameObject.Find("ErrorBuffer").GetComponent<Text>().text = "Logging in...";
+                    GameObject.Find("ErrorBuffer").GetComponent<Text>().color = Color.green;
+                } else {
+                    GameObject.Find("ErrorBuffer").GetComponent<Text>().text = "Incorrect Password";
+                    GameObject.Find("ErrorBuffer").GetComponent<Text>().color = Color.red;
+                }
+            }
+        }, teacherEmail: email);
+    }
+
     public void ResetPassword() {
         string email = null;
 
@@ -410,5 +435,20 @@ public class DBConnector : MonoBehaviour {
 
             Application.OpenURL("http://localhost/eduar/passwordreset.php?" + email);
         },teacherEmail: "test@test.nl");
+    }
+
+    public static string CreateMD5(string input) {
+        // Use input string to calculate MD5 hash
+        using (System.Security.Cryptography.MD5 md5 = System.Security.Cryptography.MD5.Create()) {
+            byte[] inputBytes = Encoding.ASCII.GetBytes(input);
+            byte[] hashBytes = md5.ComputeHash(inputBytes);
+
+            // Convert the byte array to hexadecimal string
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < hashBytes.Length; i++) {
+                sb.Append(hashBytes[i].ToString("X2"));
+            }
+            return sb.ToString();
+        }
     }
 }
