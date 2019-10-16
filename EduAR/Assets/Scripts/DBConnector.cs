@@ -12,6 +12,8 @@ public class DBConnector : MonoBehaviour {
     // Database interaction variables
     private static string query;
     private static string dbUrl = "http://localhost/eduar/request.php?";
+    [SerializeField]
+    private GameObject studentContainerPrefab;
 
     // Variables needed to get output from database
     private static DBConnector m_Instance = null;
@@ -50,6 +52,29 @@ public class DBConnector : MonoBehaviour {
             }
         });
         */
+
+        DBConnector.GetUserData((callback) => {
+            foreach (var student in callback) {
+                PropertyInfo[] info = student.GetType().GetProperties();
+                Instantiate(studentContainerPrefab, GameObject.Find("Grid").transform);
+                InputField[] inputs = studentContainerPrefab.GetComponentsInChildren<InputField>();
+                inputs[0].text = info[(int)StudentProperties.Name].GetValue(student, null).ToString();
+                inputs[1].text = info[(int)StudentProperties.Pincode].GetValue(student, null).ToString();
+                inputs[2].text = info[(int)StudentProperties.Name].GetValue(student, null).ToString();
+            }
+        }, isTeacher: false);
+    }
+
+    private void Update() {
+        DBConnector.GetUserData((callback) => {
+            foreach (var student in callback) {
+                PropertyInfo[] info = student.GetType().GetProperties();
+                InputField[] inputs = studentContainerPrefab.GetComponentsInChildren<InputField>();
+                inputs[0].text = info[(int)StudentProperties.Name].GetValue(student, null).ToString();
+                inputs[1].text = info[(int)StudentProperties.Pincode].GetValue(student, null).ToString();
+                inputs[2].text = info[(int)StudentProperties.Name].GetValue(student, null).ToString();
+            }
+        }, isTeacher: false);
     }
     // -------END OF TESTING PURPOSES-------
 
@@ -119,6 +144,14 @@ public class DBConnector : MonoBehaviour {
 
     #endregion
 
+    #region Database Interface Updater Functions
+
+    public static Coroutine UpdateStudentFunc(Action<bool> successful, int id, string name = null, int? pincode = null, int? classID = null) {
+        return Instance.StartCoroutine(UpdateStudent(successful,id, name, pincode, classID));
+    }
+
+    #endregion
+
     #region Database Getters
 
     // See comments above function GetUserData for info
@@ -140,7 +173,10 @@ public class DBConnector : MonoBehaviour {
             Debug.LogError("Error ocurred: " + info_get.error);
         } else {
             // See Decoder function for info on workings
-            callback(Decoder(info_get.downloadHandler.text, typeof(Teacher).Name));
+            if (isTeacher)
+                callback(Decoder(info_get.downloadHandler.text, typeof(Teacher).Name)); 
+            else
+                callback(Decoder(info_get.downloadHandler.text, typeof(Student).Name));
         }
     }
 
@@ -376,6 +412,38 @@ public class DBConnector : MonoBehaviour {
 
     #endregion
 
+    #region Database Updaters
+
+    private static IEnumerator UpdateStudent(Action<bool> successful, int id, string name = null, int? pincode = null, int? classID = null) {
+        query = "type=User&method=update&query=";
+        if (name != null)
+            query += "UPDATE student SET name = '" + name + "' WHERE id = " + id + ";";
+        if (pincode != null)
+            query += "UPDATE student SET pincode = " + pincode + " WHERE id = " + id + ";";
+        if (classID != null)
+            query += "UPDATE student SET class_id = " + classID + " WHERE id = " + id + ";";
+        if (name != null && pincode != null)
+            query += "UPDATE student SET name = '" + name + "', pincode = " + pincode + " WHERE id = " + id + ";";
+        if (name != null && classID != null)
+            query += "UPDATE student SET name = '" + name + "', class_id = " + classID + " WHERE id = " + id + ";";
+        if (pincode != null && classID != null)
+            query += "UPDATE student SET pincode = " + pincode + ", class_id = " + classID + " WHERE id = " + id + ";";
+        if (name != null && pincode != null && classID != null)
+            query += "UPDATE student SET name = '" + name + "', pincode = " + pincode + ", class_id = " + classID + " WHERE id = " + id + ";";
+
+        UnityWebRequest student_update = UnityWebRequest.Get(dbUrl + query);
+        yield return student_update.SendWebRequest();
+
+        if (student_update.isNetworkError || student_update.isHttpError) {
+            Debug.LogError("Error occurred: " + student_update.error);
+            successful(false);
+        } else {
+            successful(true);
+        }
+    }
+
+    #endregion
+
     // Decodes the received JSON string to an object of the type requested by the parameters
     public static IList Decoder(string data, string type) {
         // Switch case is on string rather than type because C# doesn't support siwtching on type
@@ -428,7 +496,7 @@ public class DBConnector : MonoBehaviour {
                 PropertyInfo[] info = teacher.GetType().GetProperties();
                 email = info[(int)TeacherProperties.Email].GetValue(teacher, null).ToString();
             }
-            Application.OpenURL("http://localhost/eduar/passwordreset.php?" + email);
+            Application.OpenURL("http://localhost/eduar/passwordreset.php?type=mail&email=" + email);
         },teacherEmail: "test@test.nl");
     }
 
