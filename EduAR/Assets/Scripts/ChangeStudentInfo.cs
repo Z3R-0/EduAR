@@ -13,8 +13,7 @@ public class ChangeStudentInfo : MonoBehaviour {
                 id = int.Parse(info[(int)StudentProperties.Id].GetValue(student, null).ToString());
                 InputField[] inputs = field.transform.parent.GetComponentsInChildren<InputField>();
 
-                DBConnector.UpdateStudentFunc((successful) => {
-                    Debug.Log("Updated student name to: " + inputs[0].text);    
+                DBConnector.UpdateStudentFunc((successful) => { 
                     field.text = inputs[0].text;
                 }, id, name: inputs[0].text);
             }
@@ -30,9 +29,7 @@ public class ChangeStudentInfo : MonoBehaviour {
                 id = int.Parse(info[(int)StudentProperties.Id].GetValue(student, null).ToString());
                 InputField[] inputs = field.transform.parent.GetComponentsInChildren<InputField>();
 
-                DBConnector.UpdateStudentFunc((successful) => {
-                    Debug.Log("Updated student pincode to: " + inputs[1].text);
-                }, id, pincode: int.Parse(inputs[1].text));
+                DBConnector.UpdateStudentFunc((successful) => { }, id, pincode: int.Parse(inputs[1].text));
             }
         }, isTeacher: false, studentName: field.text);
     }
