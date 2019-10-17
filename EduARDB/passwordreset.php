@@ -93,8 +93,9 @@ $requestHandler = new RequestHandler(new Connect());
                 dataType: 'json',
                 data: {query: query, options: {type: 'pass_reset', token: $('#token').val()}},
                 success: function (response) {
-                    $('#resetForm').hide();
-                    $('#handleError').html("Password successfully updated! <br/> This page can now be closed.").css('display', 'block');
+                    $('input[type=submit]').attr('disabled', true);
+                    $('#handleError').html("Password successfully updated! <br/> This page can now be closed. <br/>");
+                    $('#handleError').show();
                 },
                 error: function(response) {
                     console.error(response);
