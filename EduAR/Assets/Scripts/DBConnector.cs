@@ -12,8 +12,6 @@ public class DBConnector : MonoBehaviour {
     // Database interaction variables
     private static string query;
     private static string dbUrl = "http://localhost/eduar/request.php?";
-    [SerializeField]
-    private GameObject studentContainerPrefab;
 
     // Variables needed to get output from database
     private static DBConnector m_Instance = null;
@@ -52,29 +50,6 @@ public class DBConnector : MonoBehaviour {
             }
         });
         */
-
-        DBConnector.GetUserData((callback) => {
-            foreach (var student in callback) {
-                PropertyInfo[] info = student.GetType().GetProperties();
-                Instantiate(studentContainerPrefab, GameObject.Find("Grid").transform);
-                InputField[] inputs = studentContainerPrefab.GetComponentsInChildren<InputField>();
-                inputs[0].text = info[(int)StudentProperties.Name].GetValue(student, null).ToString();
-                inputs[1].text = info[(int)StudentProperties.Pincode].GetValue(student, null).ToString();
-                inputs[2].text = info[(int)StudentProperties.Name].GetValue(student, null).ToString();
-            }
-        }, isTeacher: false);
-    }
-
-    private void Update() {
-        DBConnector.GetUserData((callback) => {
-            foreach (var student in callback) {
-                PropertyInfo[] info = student.GetType().GetProperties();
-                InputField[] inputs = studentContainerPrefab.GetComponentsInChildren<InputField>();
-                inputs[0].text = info[(int)StudentProperties.Name].GetValue(student, null).ToString();
-                inputs[1].text = info[(int)StudentProperties.Pincode].GetValue(student, null).ToString();
-                inputs[2].text = info[(int)StudentProperties.Name].GetValue(student, null).ToString();
-            }
-        }, isTeacher: false);
     }
     // -------END OF TESTING PURPOSES-------
 

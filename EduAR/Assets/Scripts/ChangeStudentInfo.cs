@@ -3,10 +3,9 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class ChangeStudentInfo : MonoBehaviour {
+    int id;
 
     public void ChangeStudentInfoName(InputField field) {
-        int id;
-
         DBConnector.GetUserData((callback) => {
         foreach (object student in callback) {
                 PropertyInfo[] info = student.GetType().GetProperties();
@@ -21,8 +20,6 @@ public class ChangeStudentInfo : MonoBehaviour {
     }
 
     public void ChangeStudentInfoPincode(InputField field) {
-        int id;
-
         DBConnector.GetUserData((callback) => {
             foreach (object student in callback) {
                 PropertyInfo[] info = student.GetType().GetProperties();
