@@ -7,11 +7,14 @@ using System.Reflection;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine.UI;
+using System.Security.Cryptography;
 
 public class DBConnector : MonoBehaviour {
     // Database interaction variables
     private static string query;
     private static string dbUrl = "http://localhost/eduar/request.php?";
+
+    private GameObject ErrorBufferGO;
 
     // Variables needed to get output from database
     private static DBConnector m_Instance = null;
@@ -50,6 +53,7 @@ public class DBConnector : MonoBehaviour {
             }
         });
         */
+        ErrorBufferGO = GameObject.Find("ErrorBuffer");
     }
     // -------END OF TESTING PURPOSES-------
 
@@ -122,7 +126,7 @@ public class DBConnector : MonoBehaviour {
     #region Database Interface Updater Functions
 
     public static Coroutine UpdateStudentFunc(Action<bool> successful, int id, string name = null, int? pincode = null, int? classID = null) {
-        return Instance.StartCoroutine(UpdateStudent(successful,id, name, pincode, classID));
+        return Instance.StartCoroutine(UpdateStudent(successful, id, name, pincode, classID));
     }
 
     #endregion
@@ -149,7 +153,7 @@ public class DBConnector : MonoBehaviour {
         } else {
             // See Decoder function for info on workings
             if (isTeacher)
-                callback(Decoder(info_get.downloadHandler.text, typeof(Teacher).Name)); 
+                callback(Decoder(info_get.downloadHandler.text, typeof(Teacher).Name));
             else
                 callback(Decoder(info_get.downloadHandler.text, typeof(Student).Name));
         }
@@ -157,15 +161,15 @@ public class DBConnector : MonoBehaviour {
 
     private static IEnumerator GetScenario(Action<IList> callback, int? id = null, string name = null, int? classID = null, StoryType? storytype = null, int? available = null) {
         query = "type=Scenario&method=get&query=";
-        if(id != null)
+        if (id != null)
             query += "SELECT * FROM scenario WHERE id = " + id + ";";
         else if (name != null)
             query += "SELECT * FROM scenario WHERE name LIKE '%" + name + "%';";
-        else if(classID != null)
+        else if (classID != null)
             query += "SELECT * FROM scenario WHERE class_id = " + classID + ";";
-        else if(storytype != null)
+        else if (storytype != null)
             query += "SELECT * FROM scenario WHERE storytype LIKE '%" + storytype.ToString() + "%';";
-        else if(available != null)
+        else if (available != null)
             query += "SELECT * FROM scenario WHERE available = " + available + ";";
         else
             query += "SELECT * FROM scenario;";
@@ -305,7 +309,7 @@ public class DBConnector : MonoBehaviour {
         }
     }
 
-    private static IEnumerator CreateScenario(Action<bool> successful, string name, int available, string figures,  int classID, StoryType storytype) {
+    private static IEnumerator CreateScenario(Action<bool> successful, string name, int available, string figures, int classID, StoryType storytype) {
         query = "type=Scenario&method=create&query=INSERT INTO scenario " +
                 "(name,available,figures,class_id,storytype)" +
                 "values('" + name + "'," + available + ",'" + figures + "'," + classID + ",'" + storytype + "');";
@@ -444,49 +448,66 @@ public class DBConnector : MonoBehaviour {
 
     public void LogIn() {
         string email = GameObject.Find("EmailInputField").GetComponent<InputField>().text;
-        Debug.Log("email: " + email);
         string password = GameObject.Find("PasswordInputField").GetComponent<InputField>().text;
-        Debug.Log("password: " + password);
-        password = CreateMD5(password).ToLower();
-        Debug.Log("Encrypted password: " + password);
+        password = ComputeSha256Hash(password);
         GetUserData((callback) => {
-            foreach (var teacher in callback) {
-                PropertyInfo[] info = teacher.GetType().GetProperties();
-                if (email == info[(int)TeacherProperties.Email].GetValue(teacher, null).ToString() && password == info[(int)TeacherProperties.Password].GetValue(teacher, null).ToString()) {
-                    GameObject.Find("ErrorBuffer").GetComponent<Text>().text = "Logging in...";
-                    GameObject.Find("ErrorBuffer").GetComponent<Text>().color = Color.green;
-                } else {
-                    GameObject.Find("ErrorBuffer").GetComponent<Text>().text = "Incorrect Password";
-                    GameObject.Find("ErrorBuffer").GetComponent<Text>().color = Color.red;
+            if (callback == null) {
+                Debug.LogError("Unknown email entered while trying to log in");
+                ErrorBuffer().text = "Incorrect Credentials";
+                ErrorBuffer().color = Color.red;
+            } else {
+                foreach (var teacher in callback) {
+                    PropertyInfo[] info = teacher.GetType().GetProperties();
+                    if (email == info[(int)TeacherProperties.Email].GetValue(teacher, null).ToString() && password == info[(int)TeacherProperties.Password].GetValue(teacher, null).ToString()) {
+                        ErrorBuffer().text = "Logging in...";
+                        ErrorBuffer().color = Color.green;
+                    } else {
+                        ErrorBuffer().text = "Incorrect Credentials";
+                        ErrorBuffer().color = Color.red;
+                    }
                 }
             }
         }, teacherEmail: email);
     }
 
-    public void ResetPassword() {
+    public void ResetPassword(InputField field) {
         string email = null;
 
+        if (field.text == "" || field.text == null) {
+            ErrorBuffer().text = "Fill in an email adress!";
+            ErrorBuffer().color = Color.red;
+        } else
+            ErrorBuffer().text = "";
+
         GetUserData((callback) => {
-            foreach (var teacher in callback) {
-                PropertyInfo[] info = teacher.GetType().GetProperties();
-                email = info[(int)TeacherProperties.Email].GetValue(teacher, null).ToString();
+            if (callback == null) {
+                Debug.LogError("Unknown email entered while trying to reset password");
+            } else {
+                foreach (object teacher in callback) {
+                    PropertyInfo[] info = teacher.GetType().GetProperties();
+                    email = info[(int)TeacherProperties.Email].GetValue(teacher, null).ToString();
+                }
+                Application.OpenURL("http://localhost/eduar/passwordreset.php?type=mail&email=" + email);
             }
-            Application.OpenURL("http://localhost/eduar/passwordreset.php?type=mail&email=" + email);
-        },teacherEmail: "test@test.nl");
+        }, teacherEmail: field.text);
     }
 
-    public static string CreateMD5(string input) {
-        // Use input string to calculate MD5 hash
-        using (System.Security.Cryptography.MD5 md5 = System.Security.Cryptography.MD5.Create()) {
-            byte[] inputBytes = Encoding.ASCII.GetBytes(input);
-            byte[] hashBytes = md5.ComputeHash(inputBytes);
+    static string ComputeSha256Hash(string rawData) {
+        // Create a SHA256   
+        using (SHA256 sha256Hash = SHA256.Create()) {
+            // ComputeHash - returns byte array  
+            byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(rawData));
 
-            // Convert the byte array to hexadecimal string
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < hashBytes.Length; i++) {
-                sb.Append(hashBytes[i].ToString("X2"));
+            // Convert byte array to a string   
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < bytes.Length; i++) {
+                builder.Append(bytes[i].ToString("x2"));
             }
-            return sb.ToString();
+            return builder.ToString().ToLower();
         }
+    }
+
+    public Text ErrorBuffer() {
+        return ErrorBufferGO.GetComponent<Text>();
     }
 }
