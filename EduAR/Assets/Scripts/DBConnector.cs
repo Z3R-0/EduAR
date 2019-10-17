@@ -125,7 +125,7 @@ public class DBConnector : MonoBehaviour {
 
     #region Database Interface Updater Functions
 
-    public static Coroutine UpdateStudentFunc(Action<bool> successful, int id, string name = null, int? pincode = null, int? classID = null) {
+    public static Coroutine UpdateStudentFunc(Action<bool> successful, int id, string name, int pincode, int classID) {
         return Instance.StartCoroutine(UpdateStudent(successful, id, name, pincode, classID));
     }
 
@@ -393,22 +393,12 @@ public class DBConnector : MonoBehaviour {
 
     #region Database Updaters
 
-    private static IEnumerator UpdateStudent(Action<bool> successful, int id, string name = null, int? pincode = null, int? classID = null) {
-        query = "type=User&method=update&query=";
-        if (name != null)
-            query += "UPDATE student SET name = '" + name + "' WHERE id = " + id + ";";
-        if (pincode != null)
-            query += "UPDATE student SET pincode = " + pincode + " WHERE id = " + id + ";";
-        if (classID != null)
-            query += "UPDATE student SET class_id = " + classID + " WHERE id = " + id + ";";
-        if (name != null && pincode != null)
-            query += "UPDATE student SET name = '" + name + "', pincode = " + pincode + " WHERE id = " + id + ";";
-        if (name != null && classID != null)
-            query += "UPDATE student SET name = '" + name + "', class_id = " + classID + " WHERE id = " + id + ";";
-        if (pincode != null && classID != null)
-            query += "UPDATE student SET pincode = " + pincode + ", class_id = " + classID + " WHERE id = " + id + ";";
-        if (name != null && pincode != null && classID != null)
-            query += "UPDATE student SET name = '" + name + "', pincode = " + pincode + ", class_id = " + classID + " WHERE id = " + id + ";";
+    private static IEnumerator UpdateStudent(Action<bool> successful, int id, string name, int pincode, int classID) {
+        query = "type=User&method=update&query=UPDATE student SET " +
+                "name = '" + name + "', pincode = " + pincode + ", class_id = " + classID + " " +
+                "WHERE id = " + id + ";";
+
+        Debug.Log(query);
 
         UnityWebRequest student_update = UnityWebRequest.Get(dbUrl + query);
         yield return student_update.SendWebRequest();
@@ -417,10 +407,29 @@ public class DBConnector : MonoBehaviour {
             Debug.LogError("Error occurred: " + student_update.error);
             successful(false);
         } else {
+            Debug.Log("Result: " + student_update.downloadHandler.text);
+            Debug.Log("Updated student, new values: " + name + ", " + pincode + ", " + classID);
             successful(true);
         }
     }
 
+    private static IEnumerator UpdateScenario(Action<bool> successful, int id, string name, int available, string figures, int classID, StoryType storytype) {
+        query = "type=User&method=update&query=UPDATE student SET " +
+                "name = '" + name + "', available = " + available + ", figures = '" + figures + "'," +
+                ", class_id = " + classID + ", storytype = " + storytype + " " +
+                "WHERE id = " + id + ";";
+
+        UnityWebRequest scenario_update = UnityWebRequest.Get(dbUrl + query);
+        yield return scenario_update.SendWebRequest();
+
+        if (scenario_update.isNetworkError || scenario_update.isHttpError) {
+            Debug.LogError("Error occurred: " + scenario_update.error);
+            successful(false);
+        } else {
+            successful(true);
+        }
+    }
+    
     #endregion
 
     // Decodes the received JSON string to an object of the type requested by the parameters
