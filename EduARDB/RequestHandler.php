@@ -59,7 +59,7 @@ class RequestHandler
 	public function update($query, $options = null)
 	{
 		if(preg_match('/password = \'(.*?)\'/', $query, $match) !== false) {
-			$pass = md5($match[1]);
+			$pass = hash('sha256', $match[1]);
 			$query = preg_replace('/password = \''. $match[1].'\'/', 'password = \''. $pass.'\'', $query);
 		}
 		$result = $this->conn->exec($query);
