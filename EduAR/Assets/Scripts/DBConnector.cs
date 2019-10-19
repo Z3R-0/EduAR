@@ -89,6 +89,10 @@ public class DBConnector : MonoBehaviour {
         return Instance.StartCoroutine(GetClass(callback, id, classCode, name));
     }
 
+    public static Coroutine GetAssociatedData(Action<IList> callback, string data, string type) {
+        return Instance.StartCoroutine(StringToObject(callback, data, type));
+    }
+
     #endregion
 
     #region Database Interface Poster Functions
@@ -153,9 +157,9 @@ public class DBConnector : MonoBehaviour {
         } else {
             // See Decoder function for info on workings
             if (isTeacher)
-                callback(Decoder(info_get.downloadHandler.text, typeof(Teacher).Name));
+                callback(JSONDecoder(info_get.downloadHandler.text, typeof(Teacher).Name));
             else
-                callback(Decoder(info_get.downloadHandler.text, typeof(Student).Name));
+                callback(JSONDecoder(info_get.downloadHandler.text, typeof(Student).Name));
         }
     }
 
@@ -181,7 +185,7 @@ public class DBConnector : MonoBehaviour {
             Debug.LogError("Error occurred: " + scenario_get.error);
         } else {
             // See Decoder function for info on workings
-            callback(Decoder(scenario_get.downloadHandler.text, typeof(Scenario).Name));
+            callback(JSONDecoder(scenario_get.downloadHandler.text, typeof(Scenario).Name));
         }
     }
 
@@ -205,7 +209,7 @@ public class DBConnector : MonoBehaviour {
         } else {
             // See Decoder function for info on workings
             Debug.Log(figure_get.downloadHandler.text);
-            callback(Decoder(figure_get.downloadHandler.text, typeof(Figure).Name));
+            callback(JSONDecoder(figure_get.downloadHandler.text, typeof(Figure).Name));
         }
     }
 
@@ -225,7 +229,7 @@ public class DBConnector : MonoBehaviour {
         } else {
             // See Decoder function for info on workings
             Debug.Log(question_get.downloadHandler.text);
-            callback(Decoder(question_get.downloadHandler.text, typeof(Question).Name));
+            callback(JSONDecoder(question_get.downloadHandler.text, typeof(Question).Name));
         }
     }
 
@@ -245,7 +249,7 @@ public class DBConnector : MonoBehaviour {
         } else {
             // See Decoder function for info on workings
             Debug.Log(question_get.downloadHandler.text);
-            callback(Decoder(question_get.downloadHandler.text, typeof(Answer).Name));
+            callback(JSONDecoder(question_get.downloadHandler.text, typeof(Answer).Name));
         }
     }
 
@@ -269,7 +273,7 @@ public class DBConnector : MonoBehaviour {
         } else {
             // See Decoder function for info on workings
             Debug.Log(class_get.downloadHandler.text);
-            callback(Decoder(class_get.downloadHandler.text, typeof(Class).Name));
+            callback(JSONDecoder(class_get.downloadHandler.text, typeof(Class).Name));
         }
     }
 
@@ -398,8 +402,6 @@ public class DBConnector : MonoBehaviour {
                 "name = '" + name + "', pincode = " + pincode + ", class_id = " + classID + " " +
                 "WHERE id = " + id + ";";
 
-        Debug.Log(query);
-
         UnityWebRequest student_update = UnityWebRequest.Get(dbUrl + query);
         yield return student_update.SendWebRequest();
 
@@ -407,8 +409,6 @@ public class DBConnector : MonoBehaviour {
             Debug.LogError("Error occurred: " + student_update.error);
             successful(false);
         } else {
-            Debug.Log("Result: " + student_update.downloadHandler.text);
-            Debug.Log("Updated student, new values: " + name + ", " + pincode + ", " + classID);
             successful(true);
         }
     }
@@ -433,7 +433,7 @@ public class DBConnector : MonoBehaviour {
     #endregion
 
     // Decodes the received JSON string to an object of the type requested by the parameters
-    public static IList Decoder(string data, string type) {
+    public static IList JSONDecoder(string data, string type) {
         // Switch case is on string rather than type because C# doesn't support siwtching on type
         switch (type) {
             case "Teacher":
@@ -452,6 +452,20 @@ public class DBConnector : MonoBehaviour {
                 return JsonConvert.DeserializeObject<List<Class>>(data);
             default:
                 return null;
+        }
+    }
+
+    // Decodes the received comma-seperated string into a list of objects
+    private static IEnumerator StringToObject(Action<IList> callback, string data, string type) {
+        string query = "type=" + type + "&method=get&query= SELECT * FROM " + type + " WHERE id IN (" + data + ");";
+
+        UnityWebRequest converter_info = UnityWebRequest.Get(dbUrl + query);
+        yield return converter_info.SendWebRequest();
+
+        if (converter_info.isNetworkError || converter_info.isHttpError) {
+            Debug.LogError("Error occurred: " + converter_info.error);
+        } else {
+            callback(JSONDecoder(converter_info.downloadHandler.text, type));
         }
     }
 

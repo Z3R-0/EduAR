@@ -15,8 +15,6 @@ public class ChangeStudentInfo : MonoBehaviour {
                 int pin = int.Parse(info[(int)StudentProperties.Pincode].GetValue(student, null).ToString());
                 int classID = int.Parse(info[(int)StudentProperties.ClassID].GetValue(student, null).ToString());
 
-                Debug.Log("ClassID: " + classID);
-
                 DBConnector.UpdateStudentFunc((successful) => { 
                     field.text = inputs[0].text;
                 }, id, inputs[0].text, pin, classID);
@@ -33,8 +31,6 @@ public class ChangeStudentInfo : MonoBehaviour {
 
                 string name = info[(int)StudentProperties.Name].GetValue(student, null).ToString();
                 int classID = int.Parse(info[(int)StudentProperties.ClassID].GetValue(student, null).ToString());
-
-                Debug.Log("ClassID: " + classID);
 
                 DBConnector.UpdateStudentFunc((successful) => { }, id, name, int.Parse(inputs[1].text), classID);
             }

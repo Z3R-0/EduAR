@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using System.Security.Cryptography;
+using System;
 
 public enum StoryType {
     Scavenger,
@@ -30,5 +32,20 @@ public class Scenario : MonoBehaviour {
         Available = available;
         Figures = figures;
         StoryType = storytype;
-    }   
+    }
+
+    public static void ShuffleFigures(List<Figure> figures) {
+        RNGCryptoServiceProvider provider = new RNGCryptoServiceProvider();
+        int n = figures.Count;
+        while (n > 1) {
+            byte[] box = new byte[1];
+            do provider.GetBytes(box);
+            while (!(box[0] < n * (Byte.MaxValue / n)));
+            int k = (box[0] % n);
+            n--;
+            Figure value = figures[k];
+            figures[k] = figures[n];
+            figures[n] = value;
+        }
+    }
 }
