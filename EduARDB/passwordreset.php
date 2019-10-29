@@ -33,7 +33,7 @@ $requestHandler = new RequestHandler(new Connect());
 				$template = file_get_contents("passwordreset_email.html");
 				$template = str_replace("{{ url }}", $url, $template);
 
-				$to = 'robertbisschop34@gmail.com';//$_GET['email'];
+				$to = $_GET['email'];
 				$subject = "EduAR Password Reset Requested";
 				$message = $template;
 				$headers = "MIME-Version: 1.0" . "\r\n";
