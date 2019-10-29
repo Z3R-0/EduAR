@@ -5,11 +5,17 @@ using UnityEngine.Networking;
 using Newtonsoft.Json;
 using System.Reflection;
 using System.Collections.Generic;
+using System.Text;
+using UnityEngine.UI;
+using System.Security.Cryptography;
 
 public class DBConnector : MonoBehaviour {
     // Database interaction variables
     private static string query;
     private static string dbUrl = "http://localhost/eduar/request.php?";
+    private static string baseURL = "http://localhost/eduar/";
+
+    private GameObject ErrorBufferGO;
 
     // Variables needed to get output from database
     private static DBConnector m_Instance = null;
@@ -28,8 +34,8 @@ public class DBConnector : MonoBehaviour {
         }
     }
 
-    // -------TESTING PURPOSES-------
     private void Start() {
+        // -------TESTING PURPOSES-------
         // Currently used for testing, this is the format to use when asking for data from the database
         // Replace GetUserData with the function that gives the needed info and read it using info[(int) enum PropertyName]
         // The PropertyName enum is found in each database class
@@ -48,8 +54,9 @@ public class DBConnector : MonoBehaviour {
             }
         });
         */
+        // -------END OF TESTING PURPOSES-------
+        ErrorBufferGO = GameObject.Find("ErrorBuffer");
     }
-    // -------END OF TESTING PURPOSES-------
 
     #region Database Interface Getter Functions
 
@@ -81,6 +88,10 @@ public class DBConnector : MonoBehaviour {
 
     public static Coroutine GetClassData(Action<IList> callback, int? id = null, string classCode = null, string name = null) {
         return Instance.StartCoroutine(GetClass(callback, id, classCode, name));
+    }
+
+    public static Coroutine GetAssociatedData(Action<IList> callback, string data, string type) {
+        return Instance.StartCoroutine(StringToObject(callback, data, type));
     }
 
     #endregion
@@ -117,6 +128,14 @@ public class DBConnector : MonoBehaviour {
 
     #endregion
 
+    #region Database Interface Updater Functions
+
+    public static Coroutine UpdateStudentFunc(Action<bool> successful, int id, string name, int pincode, int classID) {
+        return Instance.StartCoroutine(UpdateStudent(successful, id, name, pincode, classID));
+    }
+
+    #endregion
+
     #region Database Getters
 
     // See comments above function GetUserData for info
@@ -138,21 +157,24 @@ public class DBConnector : MonoBehaviour {
             Debug.LogError("Error ocurred: " + info_get.error);
         } else {
             // See Decoder function for info on workings
-            callback(Decoder(info_get.downloadHandler.text, typeof(Teacher).Name));
+            if (isTeacher)
+                callback(JSONDecoder(info_get.downloadHandler.text, typeof(Teacher).Name));
+            else
+                callback(JSONDecoder(info_get.downloadHandler.text, typeof(Student).Name));
         }
     }
 
     private static IEnumerator GetScenario(Action<IList> callback, int? id = null, string name = null, int? classID = null, StoryType? storytype = null, int? available = null) {
         query = "type=Scenario&method=get&query=";
-        if(id != null)
+        if (id != null)
             query += "SELECT * FROM scenario WHERE id = " + id + ";";
         else if (name != null)
             query += "SELECT * FROM scenario WHERE name LIKE '%" + name + "%';";
-        else if(classID != null)
+        else if (classID != null)
             query += "SELECT * FROM scenario WHERE class_id = " + classID + ";";
-        else if(storytype != null)
+        else if (storytype != null)
             query += "SELECT * FROM scenario WHERE storytype LIKE '%" + storytype.ToString() + "%';";
-        else if(available != null)
+        else if (available != null)
             query += "SELECT * FROM scenario WHERE available = " + available + ";";
         else
             query += "SELECT * FROM scenario;";
@@ -164,7 +186,7 @@ public class DBConnector : MonoBehaviour {
             Debug.LogError("Error occurred: " + scenario_get.error);
         } else {
             // See Decoder function for info on workings
-            callback(Decoder(scenario_get.downloadHandler.text, typeof(Scenario).Name));
+            callback(JSONDecoder(scenario_get.downloadHandler.text, typeof(Scenario).Name));
         }
     }
 
@@ -188,7 +210,7 @@ public class DBConnector : MonoBehaviour {
         } else {
             // See Decoder function for info on workings
             Debug.Log(figure_get.downloadHandler.text);
-            callback(Decoder(figure_get.downloadHandler.text, typeof(Figure).Name));
+            callback(JSONDecoder(figure_get.downloadHandler.text, typeof(Figure).Name));
         }
     }
 
@@ -208,7 +230,7 @@ public class DBConnector : MonoBehaviour {
         } else {
             // See Decoder function for info on workings
             Debug.Log(question_get.downloadHandler.text);
-            callback(Decoder(question_get.downloadHandler.text, typeof(Question).Name));
+            callback(JSONDecoder(question_get.downloadHandler.text, typeof(Question).Name));
         }
     }
 
@@ -228,7 +250,7 @@ public class DBConnector : MonoBehaviour {
         } else {
             // See Decoder function for info on workings
             Debug.Log(question_get.downloadHandler.text);
-            callback(Decoder(question_get.downloadHandler.text, typeof(Answer).Name));
+            callback(JSONDecoder(question_get.downloadHandler.text, typeof(Answer).Name));
         }
     }
 
@@ -252,7 +274,7 @@ public class DBConnector : MonoBehaviour {
         } else {
             // See Decoder function for info on workings
             Debug.Log(class_get.downloadHandler.text);
-            callback(Decoder(class_get.downloadHandler.text, typeof(Class).Name));
+            callback(JSONDecoder(class_get.downloadHandler.text, typeof(Class).Name));
         }
     }
 
@@ -292,7 +314,7 @@ public class DBConnector : MonoBehaviour {
         }
     }
 
-    private static IEnumerator CreateScenario(Action<bool> successful, string name, int available, string figures,  int classID, StoryType storytype) {
+    private static IEnumerator CreateScenario(Action<bool> successful, string name, int available, string figures, int classID, StoryType storytype) {
         query = "type=Scenario&method=create&query=INSERT INTO scenario " +
                 "(name,available,figures,class_id,storytype)" +
                 "values('" + name + "'," + available + ",'" + figures + "'," + classID + ",'" + storytype + "');";
@@ -374,8 +396,45 @@ public class DBConnector : MonoBehaviour {
 
     #endregion
 
+    #region Database Updaters
+
+    private static IEnumerator UpdateStudent(Action<bool> successful, int id, string name, int pincode, int classID) {
+        query = "type=User&method=update&query=UPDATE student SET " +
+                "name = '" + name + "', pincode = " + pincode + ", class_id = " + classID + " " +
+                "WHERE id = " + id + ";";
+
+        UnityWebRequest student_update = UnityWebRequest.Get(dbUrl + query);
+        yield return student_update.SendWebRequest();
+
+        if (student_update.isNetworkError || student_update.isHttpError) {
+            Debug.LogError("Error occurred: " + student_update.error);
+            successful(false);
+        } else {
+            successful(true);
+        }
+    }
+
+    private static IEnumerator UpdateScenario(Action<bool> successful, int id, string name, int available, string figures, int classID, StoryType storytype) {
+        query = "type=User&method=update&query=UPDATE student SET " +
+                "name = '" + name + "', available = " + available + ", figures = '" + figures + "'," +
+                ", class_id = " + classID + ", storytype = " + storytype + " " +
+                "WHERE id = " + id + ";";
+
+        UnityWebRequest scenario_update = UnityWebRequest.Get(dbUrl + query);
+        yield return scenario_update.SendWebRequest();
+
+        if (scenario_update.isNetworkError || scenario_update.isHttpError) {
+            Debug.LogError("Error occurred: " + scenario_update.error);
+            successful(false);
+        } else {
+            successful(true);
+        }
+    }
+    
+    #endregion
+
     // Decodes the received JSON string to an object of the type requested by the parameters
-    public static IList Decoder(string data, string type) {
+    public static IList JSONDecoder(string data, string type) {
         // Switch case is on string rather than type because C# doesn't support siwtching on type
         switch (type) {
             case "Teacher":
@@ -395,5 +454,84 @@ public class DBConnector : MonoBehaviour {
             default:
                 return null;
         }
+    }
+
+    // Decodes the received comma-seperated string into a list of objects
+    private static IEnumerator StringToObject(Action<IList> callback, string data, string type) {
+        string query = "type=" + type + "&method=get&query= SELECT * FROM " + type + " WHERE id IN (" + data + ");";
+
+        UnityWebRequest converter_info = UnityWebRequest.Get(dbUrl + query);
+        yield return converter_info.SendWebRequest();
+
+        if (converter_info.isNetworkError || converter_info.isHttpError) {
+            Debug.LogError("Error occurred: " + converter_info.error);
+        } else {
+            callback(JSONDecoder(converter_info.downloadHandler.text, type));
+        }
+    }
+
+    public void LogIn() {
+        string email = GameObject.Find("EmailInputField").GetComponent<InputField>().text;
+        string password = GameObject.Find("PasswordInputField").GetComponent<InputField>().text;
+        password = ComputeSha256Hash(password);
+        GetUserData((callback) => {
+            if (callback == null) {
+                Debug.LogError("Unknown email entered while trying to log in");
+                ErrorBuffer().text = "Incorrect Credentials";
+                ErrorBuffer().color = Color.red;
+            } else {
+                foreach (var teacher in callback) {
+                    PropertyInfo[] info = teacher.GetType().GetProperties();
+                    if (email == info[(int)TeacherProperties.Email].GetValue(teacher, null).ToString() && password == info[(int)TeacherProperties.Password].GetValue(teacher, null).ToString()) {
+                        ErrorBuffer().text = "Logging in...";
+                        ErrorBuffer().color = Color.green;
+                    } else {
+                        ErrorBuffer().text = "Incorrect Credentials";
+                        ErrorBuffer().color = Color.red;
+                    }
+                }
+            }
+        }, teacherEmail: email);
+    }
+
+    public void ResetPassword(InputField field) {
+        string email = null;
+
+        if (field.text == "" || field.text == null) {
+            ErrorBuffer().text = "Fill in an email adress!";
+            ErrorBuffer().color = Color.red;
+        } else
+            ErrorBuffer().text = "";
+
+        GetUserData((callback) => {
+            if (callback == null) {
+                Debug.LogError("Unknown email entered while trying to reset password");
+            } else {
+                foreach (object teacher in callback) {
+                    PropertyInfo[] info = teacher.GetType().GetProperties();
+                    email = info[(int)TeacherProperties.Email].GetValue(teacher, null).ToString();
+                }
+                Application.OpenURL(baseURL + "passwordreset.php?type=mail&email=" + email);
+            }
+        }, teacherEmail: field.text);
+    }
+
+    static string ComputeSha256Hash(string rawData) {
+        // Create a SHA256   
+        using (SHA256 sha256Hash = SHA256.Create()) {
+            // ComputeHash - returns byte array  
+            byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(rawData));
+
+            // Convert byte array to a string   
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < bytes.Length; i++) {
+                builder.Append(bytes[i].ToString("x2"));
+            }
+            return builder.ToString().ToLower();
+        }
+    }
+
+    public Text ErrorBuffer() {
+        return ErrorBufferGO.GetComponent<Text>();
     }
 }

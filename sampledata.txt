@@ -6,9 +6,9 @@ class_id: 1
 storytype: scavenger
 
 Teacher:
-Pietje Puk
-test@test.nl
-test1234
+Name: Pietje Puk
+email: test@test.nl
+password: TEST
 Preference: 1
 classcode: 1
 

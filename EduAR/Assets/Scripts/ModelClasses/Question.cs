@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-public enum QuestionProperties {
+﻿public enum QuestionProperties {
     Id,
     Question,
     Answers,

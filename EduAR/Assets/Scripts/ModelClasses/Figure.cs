@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-public enum Task {
+﻿public enum Task {
     QuizGiver,
     Info_Prop,
     Static_Prop
