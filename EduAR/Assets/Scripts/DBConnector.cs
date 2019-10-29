@@ -13,6 +13,7 @@ public class DBConnector : MonoBehaviour {
     // Database interaction variables
     private static string query;
     private static string dbUrl = "http://localhost/eduar/request.php?";
+    private static string baseURL = "http://localhost/eduar/";
 
     private GameObject ErrorBufferGO;
 
@@ -33,8 +34,8 @@ public class DBConnector : MonoBehaviour {
         }
     }
 
-    // -------TESTING PURPOSES-------
     private void Start() {
+        // -------TESTING PURPOSES-------
         // Currently used for testing, this is the format to use when asking for data from the database
         // Replace GetUserData with the function that gives the needed info and read it using info[(int) enum PropertyName]
         // The PropertyName enum is found in each database class
@@ -53,9 +54,9 @@ public class DBConnector : MonoBehaviour {
             }
         });
         */
+        // -------END OF TESTING PURPOSES-------
         ErrorBufferGO = GameObject.Find("ErrorBuffer");
     }
-    // -------END OF TESTING PURPOSES-------
 
     #region Database Interface Getter Functions
 
@@ -510,7 +511,7 @@ public class DBConnector : MonoBehaviour {
                     PropertyInfo[] info = teacher.GetType().GetProperties();
                     email = info[(int)TeacherProperties.Email].GetValue(teacher, null).ToString();
                 }
-                Application.OpenURL("http://localhost/eduar/passwordreset.php?type=mail&email=" + email);
+                Application.OpenURL(baseURL + "passwordreset.php?type=mail&email=" + email);
             }
         }, teacherEmail: field.text);
     }
