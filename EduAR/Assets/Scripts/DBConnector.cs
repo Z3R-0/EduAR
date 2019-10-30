@@ -14,11 +14,8 @@ using System.IO;
 public class DBConnector : MonoBehaviour {
     // Database interaction variables
     private static string query;
-    //private static string dbUrl = "https://eduarapp.000webhostapp.com/request.php?";
-    //private static string baseURL = "https://eduarapp.000webhostapp.com/";
-
-    private static string dbUrl = "http://localhost/eduar/request.php?";
-    private static string baseURL = "http://localhost/eduar/";
+    private static string dbUrl = "https://eduarapp.000webhostapp.com/request.php?";
+    private static string baseURL = "https://eduarapp.000webhostapp.com/";
 
     private const string secretSalt = "T34M4rch";
     private static byte[] key;
