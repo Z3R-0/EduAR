@@ -457,7 +457,7 @@ public class DBConnector : MonoBehaviour {
     }
 
     // Decodes the received comma-seperated string into a list of objects
-    private static IEnumerator StringToObject(Action<IList> callback, string data, string type) {
+    public static IEnumerator StringToObject(Action<IList> callback, string data, string type) {
         string query = "type=" + type + "&method=get&query= SELECT * FROM " + type + " WHERE id IN (" + data + ");";
 
         UnityWebRequest converter_info = UnityWebRequest.Get(dbUrl + query);
@@ -483,6 +483,7 @@ public class DBConnector : MonoBehaviour {
                 foreach (var teacher in callback) {
                     PropertyInfo[] info = teacher.GetType().GetProperties();
                     if (email == info[(int)TeacherProperties.Email].GetValue(teacher, null).ToString() && password == info[(int)TeacherProperties.Password].GetValue(teacher, null).ToString()) {
+                        Teacher.currentTeacher = (Teacher) teacher;
                         ErrorBuffer().text = "Logging in...";
                         ErrorBuffer().color = Color.green;
                     } else {
