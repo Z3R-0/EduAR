@@ -19,6 +19,8 @@ public enum ScenarioProperties {
 }
 
 public class Scenario : MonoBehaviour {
+    public static IList<object> Scenarios;
+
     public int Id { get; set; }
     public string Name { get; set; }
     public int Available { get; set; }
