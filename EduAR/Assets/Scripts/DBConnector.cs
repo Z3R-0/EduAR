@@ -8,12 +8,18 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine.UI;
 using System.Security.Cryptography;
+using System.Linq;
+using System.IO;
 
 public class DBConnector : MonoBehaviour {
     // Database interaction variables
     private static string query;
     private static string dbUrl = "https://eduarapp.000webhostapp.com/request.php?";
     private static string baseURL = "https://eduarapp.000webhostapp.com/";
+
+    private const string secretSalt = "T34M4rch";
+    private static byte[] key;
+    private static byte[] iv;
 
     private GameObject ErrorBufferGO;
 
@@ -35,6 +41,12 @@ public class DBConnector : MonoBehaviour {
     }
 
     private void Start() {
+        SHA256 mySHA256 = SHA256Managed.Create();
+        key = mySHA256.ComputeHash(Encoding.ASCII.GetBytes(secretSalt));
+
+        // Create secret IV
+        iv = new byte[16] { 0x1, 0x4, 0x7, 0x2, 0x5, 0x8, 0x3, 0x6, 0x9, 0x4, 0x7, 0x10, 0x5, 0x8, 0x11, 0x6 };
+
         // -------TESTING PURPOSES-------
         // Currently used for testing, this is the format to use when asking for data from the database
         // Replace GetUserData with the function that gives the needed info and read it using info[(int) enum PropertyName]
@@ -44,7 +56,6 @@ public class DBConnector : MonoBehaviour {
             if (successful)
                 Debug.Log("Created a new class");
         }, "ICTGS", "Game Studio");
-
         DBConnector.GetClassData((callback) => {
             foreach (var classObj in callback) {
                 PropertyInfo[] info = classObj.GetType().GetProperties();
@@ -150,12 +161,14 @@ public class DBConnector : MonoBehaviour {
         else
             query += "SELECT * FROM student;";
 
-        UnityWebRequest info_get = UnityWebRequest.Get(dbUrl + query);
+        string encryptedQuery = "&key=" + EncryptString(query, key, iv);
+        UnityWebRequest info_get = UnityWebRequest.Get(dbUrl + query + encryptedQuery);
         yield return info_get.SendWebRequest();
 
         if (info_get.isNetworkError || info_get.isHttpError) {
             Debug.LogError("Error ocurred: " + info_get.error);
         } else {
+            Debug.Log(info_get.downloadHandler.text);
             // See Decoder function for info on workings
             if (isTeacher)
                 callback(JSONDecoder(info_get.downloadHandler.text, typeof(Teacher).Name));
@@ -179,7 +192,8 @@ public class DBConnector : MonoBehaviour {
         else
             query += "SELECT * FROM scenario;";
 
-        UnityWebRequest scenario_get = UnityWebRequest.Get(dbUrl + query);
+        string encryptedQuery = "&key=" + EncryptString(query, key, iv);
+        UnityWebRequest scenario_get = UnityWebRequest.Get(dbUrl + query + encryptedQuery);
         yield return scenario_get.SendWebRequest();
 
         if (scenario_get.isNetworkError || scenario_get.isHttpError) {
@@ -202,7 +216,8 @@ public class DBConnector : MonoBehaviour {
         else
             query += "SELECT * FROM figure";
 
-        UnityWebRequest figure_get = UnityWebRequest.Get(dbUrl + query);
+        string encryptedQuery = "&key=" + EncryptString(query, key, iv);
+        UnityWebRequest figure_get = UnityWebRequest.Get(dbUrl + query + encryptedQuery);
         yield return figure_get.SendWebRequest();
 
         if (figure_get.isNetworkError || figure_get.isHttpError) {
@@ -222,7 +237,8 @@ public class DBConnector : MonoBehaviour {
         else
             query += "SELECT * FROM question;";
 
-        UnityWebRequest question_get = UnityWebRequest.Get(dbUrl + query);
+        string encryptedQuery = "&key=" + EncryptString(query, key, iv);
+        UnityWebRequest question_get = UnityWebRequest.Get(dbUrl + query + encryptedQuery);
         yield return question_get.SendWebRequest();
 
         if (question_get.isNetworkError || question_get.isHttpError) {
@@ -242,7 +258,8 @@ public class DBConnector : MonoBehaviour {
         else
             query += "SELECT * FROM answer;";
 
-        UnityWebRequest question_get = UnityWebRequest.Get(dbUrl + query);
+        string encryptedQuery = "&key=" + EncryptString(query, key, iv);
+        UnityWebRequest question_get = UnityWebRequest.Get(dbUrl + query + encryptedQuery);
         yield return question_get.SendWebRequest();
 
         if (question_get.isNetworkError || question_get.isHttpError) {
@@ -266,7 +283,8 @@ public class DBConnector : MonoBehaviour {
         else
             query += "SELECT * FROM class";
 
-        UnityWebRequest class_get = UnityWebRequest.Get(dbUrl + query);
+        string encryptedQuery = "&key=" + EncryptString(query, key, iv);
+        UnityWebRequest class_get = UnityWebRequest.Get(dbUrl + query + encryptedQuery);
         yield return class_get.SendWebRequest();
 
         if (class_get.isNetworkError || class_get.isHttpError) {
@@ -287,7 +305,8 @@ public class DBConnector : MonoBehaviour {
                 "(name,email,password,class_id) " +
                 "values('" + name + "','" + email + "','" + password + "'," + classID + ");";
 
-        UnityWebRequest teacher_create = UnityWebRequest.Get(dbUrl + query);
+        string encryptedQuery = "&key=" + EncryptString(query, key, iv);
+        UnityWebRequest teacher_create = UnityWebRequest.Get(dbUrl + query + encryptedQuery);
         yield return teacher_create.SendWebRequest();
 
         if (teacher_create.isNetworkError || teacher_create.isHttpError) {
@@ -303,7 +322,8 @@ public class DBConnector : MonoBehaviour {
                 "(name,pincode,class_id) " +
                 "values('" + name + "'," + pincode + "," + classID + ");";
 
-        UnityWebRequest student_create = UnityWebRequest.Get(dbUrl + query);
+        string encryptedQuery = "&key=" + EncryptString(query, key, iv);
+        UnityWebRequest student_create = UnityWebRequest.Get(dbUrl + query + encryptedQuery);
         yield return student_create.SendWebRequest();
 
         if (student_create.isNetworkError || student_create.isHttpError) {
@@ -319,7 +339,8 @@ public class DBConnector : MonoBehaviour {
                 "(name,available,figures,class_id,storytype)" +
                 "values('" + name + "'," + available + ",'" + figures + "'," + classID + ",'" + storytype + "');";
 
-        UnityWebRequest scenario_create = UnityWebRequest.Get(dbUrl + query);
+        string encryptedQuery = "&key=" + EncryptString(query, key, iv);
+        UnityWebRequest scenario_create = UnityWebRequest.Get(dbUrl + query + encryptedQuery);
         yield return scenario_create.SendWebRequest();
 
         if (scenario_create.isNetworkError || scenario_create.isHttpError) {
@@ -335,7 +356,8 @@ public class DBConnector : MonoBehaviour {
                 "(name,information,task,location,questions)" +
                 "values('" + name + "','" + information + "','" + task + "','" + location + "','" + questions + "');";
 
-        UnityWebRequest figure_create = UnityWebRequest.Get(dbUrl + query);
+        string encryptedQuery = "&key=" + EncryptString(query, key, iv);
+        UnityWebRequest figure_create = UnityWebRequest.Get(dbUrl + query + encryptedQuery);
         yield return figure_create.SendWebRequest();
 
         if (figure_create.isNetworkError || figure_create.isHttpError) {
@@ -351,7 +373,8 @@ public class DBConnector : MonoBehaviour {
                 "(question_text,answers,correct_answer_id)" +
                 "values('" + questionText + "','" + answers + "'," + correctAnswerId + ")";
 
-        UnityWebRequest answer_create = UnityWebRequest.Get(dbUrl + query);
+        string encryptedQuery = "&key=" + EncryptString(query, key, iv);
+        UnityWebRequest answer_create = UnityWebRequest.Get(dbUrl + query + encryptedQuery);
         yield return answer_create.SendWebRequest();
 
         if (answer_create.isNetworkError || answer_create.isHttpError) {
@@ -367,7 +390,8 @@ public class DBConnector : MonoBehaviour {
                 "(text)" +
                 "values('" + text + "');";
 
-        UnityWebRequest answer_create = UnityWebRequest.Get(dbUrl + query);
+        string encryptedQuery = "&key=" + EncryptString(query, key, iv);
+        UnityWebRequest answer_create = UnityWebRequest.Get(dbUrl + query + encryptedQuery);
         yield return answer_create.SendWebRequest();
 
         if (answer_create.isNetworkError || answer_create.isHttpError) {
@@ -383,7 +407,8 @@ public class DBConnector : MonoBehaviour {
                 "(classcode, name)" +
                 "values('" + classCode + "','" + name + "');";
 
-        UnityWebRequest class_create = UnityWebRequest.Get(dbUrl + query);
+        string encryptedQuery = "&key=" + EncryptString(query, key, iv);
+        UnityWebRequest class_create = UnityWebRequest.Get(dbUrl + query + encryptedQuery);
         yield return class_create.SendWebRequest();
 
         if (class_create.isNetworkError || class_create.isHttpError) {
@@ -403,7 +428,8 @@ public class DBConnector : MonoBehaviour {
                 "name = '" + name + "', pincode = " + pincode + ", class_id = " + classID + " " +
                 "WHERE id = " + id + ";";
 
-        UnityWebRequest student_update = UnityWebRequest.Get(dbUrl + query);
+        string encryptedQuery = "&key=" + EncryptString(query, key, iv);
+        UnityWebRequest student_update = UnityWebRequest.Get(dbUrl + query + encryptedQuery);
         yield return student_update.SendWebRequest();
 
         if (student_update.isNetworkError || student_update.isHttpError) {
@@ -420,7 +446,8 @@ public class DBConnector : MonoBehaviour {
                 ", class_id = " + classID + ", storytype = " + storytype + " " +
                 "WHERE id = " + id + ";";
 
-        UnityWebRequest scenario_update = UnityWebRequest.Get(dbUrl + query);
+        string encryptedQuery = "&key=" + EncryptString(query, key, iv);
+        UnityWebRequest scenario_update = UnityWebRequest.Get(dbUrl + query + encryptedQuery);
         yield return scenario_update.SendWebRequest();
 
         if (scenario_update.isNetworkError || scenario_update.isHttpError) {
@@ -430,7 +457,7 @@ public class DBConnector : MonoBehaviour {
             successful(true);
         }
     }
-    
+
     #endregion
 
     // Decodes the received JSON string to an object of the type requested by the parameters
@@ -457,7 +484,7 @@ public class DBConnector : MonoBehaviour {
     }
 
     // Decodes the received comma-seperated string into a list of objects
-    public static IEnumerator StringToObject(Action<IList> callback, string data, string type) {
+    private static IEnumerator StringToObject(Action<IList> callback, string data, string type) {
         string query = "type=" + type + "&method=get&query= SELECT * FROM " + type + " WHERE id IN (" + data + ");";
 
         UnityWebRequest converter_info = UnityWebRequest.Get(dbUrl + query);
@@ -530,6 +557,101 @@ public class DBConnector : MonoBehaviour {
             }
             return builder.ToString().ToLower();
         }
+    }
+
+    public static string EncryptString(string plainText, byte[] key, byte[] iv) {
+        // Instantiate a new Aes object to perform string symmetric encryption
+        Aes encryptor = Aes.Create();
+
+        encryptor.Mode = CipherMode.CBC;
+
+        // Set key and IV
+        byte[] aesKey = new byte[32];
+        Array.Copy(key, 0, aesKey, 0, 32);
+        encryptor.Key = aesKey;
+        encryptor.IV = iv;
+
+        // Instantiate a new MemoryStream object to contain the encrypted bytes
+        MemoryStream memoryStream = new MemoryStream();
+
+        // Instantiate a new encryptor from our Aes object
+        ICryptoTransform aesEncryptor = encryptor.CreateEncryptor();
+
+        // Instantiate a new CryptoStream object to process the data and write it to the 
+        // memory stream
+        CryptoStream cryptoStream = new CryptoStream(memoryStream, aesEncryptor, CryptoStreamMode.Write);
+
+        // Convert the plainText string into a byte array
+        byte[] plainBytes = Encoding.ASCII.GetBytes(plainText);
+
+        // Encrypt the input plaintext string
+        cryptoStream.Write(plainBytes, 0, plainBytes.Length);
+
+        // Complete the encryption process
+        cryptoStream.FlushFinalBlock();
+
+        // Convert the encrypted data from a MemoryStream to a byte array
+        byte[] cipherBytes = memoryStream.ToArray();
+
+        // Close both the MemoryStream and the CryptoStream
+        memoryStream.Close();
+        cryptoStream.Close();
+
+        // Convert the encrypted byte array to a base64 encoded string
+        string cipherText = Convert.ToBase64String(cipherBytes, 0, cipherBytes.Length);
+
+        // Return the encrypted data as a string
+        return cipherText;
+    }
+
+    public static string DecryptString(string cipherText, byte[] key, byte[] iv) {
+        // Instantiate a new Aes object to perform string symmetric encryption
+        Aes encryptor = Aes.Create();
+
+        encryptor.Mode = CipherMode.CBC;
+
+        // Set key and IV
+        byte[] aesKey = new byte[32];
+        Array.Copy(key, 0, aesKey, 0, 32);
+        encryptor.Key = aesKey;
+        encryptor.IV = iv;
+
+        // Instantiate a new MemoryStream object to contain the encrypted bytes
+        MemoryStream memoryStream = new MemoryStream();
+
+        // Instantiate a new encryptor from our Aes object
+        ICryptoTransform aesDecryptor = encryptor.CreateDecryptor();
+
+        // Instantiate a new CryptoStream object to process the data and write it to the 
+        // memory stream
+        CryptoStream cryptoStream = new CryptoStream(memoryStream, aesDecryptor, CryptoStreamMode.Write);
+
+        // Will contain decrypted plaintext
+        string plainText = String.Empty;
+
+        try {
+            // Convert the ciphertext string into a byte array
+            byte[] cipherBytes = Convert.FromBase64String(cipherText);
+
+            // Decrypt the input ciphertext string
+            cryptoStream.Write(cipherBytes, 0, cipherBytes.Length);
+
+            // Complete the decryption process
+            cryptoStream.FlushFinalBlock();
+
+            // Convert the decrypted data from a MemoryStream to a byte array
+            byte[] plainBytes = memoryStream.ToArray();
+
+            // Convert the decrypted byte array to string
+            plainText = Encoding.ASCII.GetString(plainBytes, 0, plainBytes.Length);
+        } finally {
+            // Close both the MemoryStream and the CryptoStream
+            memoryStream.Close();
+            cryptoStream.Close();
+        }
+
+        // Return the decrypted data as a string
+        return plainText;
     }
 
     public Text ErrorBuffer() {
