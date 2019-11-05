@@ -14,7 +14,7 @@ if(isset($_GET['key'])) {
 
 	$encrypted = $requestHandler->encryptQuery(urldecode($query[0]), 'aes-256-cbc', $key, $iv);
 
-	if($encrypted !== $_GET['key']) {
+	if($encrypted !== str_replace(" ", "+", $_GET['key'])) {
 		echo "Unauthorized request";
 		die();
 	}
