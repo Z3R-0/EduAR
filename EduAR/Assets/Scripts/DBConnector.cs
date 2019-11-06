@@ -22,6 +22,7 @@ public class DBConnector : MonoBehaviour {
     private static byte[] iv;
 
     private GameObject ErrorBufferGO;
+    private PanelHandler panelHandler;
 
     // Variables needed to get output from database
     private static DBConnector m_Instance = null;
@@ -46,6 +47,8 @@ public class DBConnector : MonoBehaviour {
 
         // Create secret IV
         iv = new byte[16] { 0x1, 0x4, 0x7, 0x2, 0x5, 0x8, 0x3, 0x6, 0x9, 0x4, 0x7, 0x10, 0x5, 0x8, 0x11, 0x6 };
+
+        panelHandler = GameObject.Find("MainCanvas").GetComponent<PanelHandler>();
 
         // -------TESTING PURPOSES-------
         // Currently used for testing, this is the format to use when asking for data from the database
@@ -168,7 +171,6 @@ public class DBConnector : MonoBehaviour {
         if (info_get.isNetworkError || info_get.isHttpError) {
             Debug.LogError("Error ocurred: " + info_get.error);
         } else {
-            Debug.Log(info_get.downloadHandler.text);
             // See Decoder function for info on workings
             if (isTeacher)
                 callback(JSONDecoder(info_get.downloadHandler.text, typeof(Teacher).Name));
@@ -224,7 +226,6 @@ public class DBConnector : MonoBehaviour {
             Debug.LogError("Error occurred: " + figure_get.error);
         } else {
             // See Decoder function for info on workings
-            Debug.Log(figure_get.downloadHandler.text);
             callback(JSONDecoder(figure_get.downloadHandler.text, typeof(Figure).Name));
         }
     }
@@ -245,7 +246,6 @@ public class DBConnector : MonoBehaviour {
             Debug.LogError("Error occurred: " + question_get.error);
         } else {
             // See Decoder function for info on workings
-            Debug.Log(question_get.downloadHandler.text);
             callback(JSONDecoder(question_get.downloadHandler.text, typeof(Question).Name));
         }
     }
@@ -266,7 +266,6 @@ public class DBConnector : MonoBehaviour {
             Debug.LogError("Error occurred: " + question_get.error);
         } else {
             // See Decoder function for info on workings
-            Debug.Log(question_get.downloadHandler.text);
             callback(JSONDecoder(question_get.downloadHandler.text, typeof(Answer).Name));
         }
     }
@@ -291,7 +290,6 @@ public class DBConnector : MonoBehaviour {
             Debug.LogError("Error occurred: " + class_get.error);
         } else {
             // See Decoder function for info on workings
-            Debug.Log(class_get.downloadHandler.text);
             callback(JSONDecoder(class_get.downloadHandler.text, typeof(Class).Name));
         }
     }
@@ -510,9 +508,11 @@ public class DBConnector : MonoBehaviour {
                 foreach (var teacher in callback) {
                     PropertyInfo[] info = teacher.GetType().GetProperties();
                     if (email == info[(int)TeacherProperties.Email].GetValue(teacher, null).ToString() && password == info[(int)TeacherProperties.Password].GetValue(teacher, null).ToString()) {
-                        Teacher.currentTeacher = (Teacher) teacher;
+                        Teacher.currentTeacher = (Teacher)teacher;
                         ErrorBuffer().text = "Logging in...";
                         ErrorBuffer().color = Color.green;
+                        if (panelHandler != null)
+                            panelHandler.LoggedIn();
                     } else {
                         ErrorBuffer().text = "Incorrect Credentials";
                         ErrorBuffer().color = Color.red;

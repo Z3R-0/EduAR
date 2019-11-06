@@ -5,8 +5,7 @@ using UnityEngine;
 public enum Panel {
     StudentList,
     ScenarioList,
-    Create,
-    None
+    CreateScenario
 }
 
 public enum PopUp {
@@ -17,47 +16,124 @@ public enum PopUp {
 
 public class PanelHandler : MonoBehaviour {
 
+    // Serialize the panels for use in code
     [SerializeField]
     private List<GameObject> panels = new List<GameObject>();
+    // seralize the popups as a list, then transfer contents of list over to the Dictionary (Dictionaries cannot be serialized)
     [SerializeField]
-    private List<GameObject> popups = new List<GameObject>();
+    private List<GameObject> popupsList = new List<GameObject>();
+    private Dictionary<PopUp, GameObject> popups = new Dictionary<PopUp, GameObject>();
+
+
 
     // Start is called before the first frame update
     void Start() {
+        // initialize popups dictionary
+        for (int i = 0; i < popupsList.Count; i++) {
+            popups.Add((PopUp)i, popupsList[i]);
+        }
 
+        ConfirmLogIn();
     }
 
     // Update is called once per frame
     void Update() {
-
+        
     }
 
+    /// <summary>
+    /// Activates the given pop up
+    /// </summary>
+    /// <param name="popUp">The pop up to activate</param>
     public void RunPopUp(PopUp popUp) {
-        popups[(int)popUp].SetActive(true);
+        popups[popUp].SetActive(true);
     }
 
-    // Returns true if any pop up is currently running, else returns false
-    //public bool IsPopUp() {
-    //    for (int i = 0; i <= popups.Count; i++) {
-    //        if (popups[i].activeInHierarchy)
-    //            return false;
-    //    }
-    //    return true;
-    //}
+    /// <summary>
+    /// Closes the given pop up
+    /// </summary>
+    /// <param name="popUp">The pop up to close</param>
+    public void ClosePopUp(PopUp popUp) {
+        popups[popUp].SetActive(false);
+    }
 
+    /// <summary>
+    /// Used for button OnClick methods to close the menu
+    /// </summary>
+    public void CloseMenu() {
+        popups[PopUp.Menu].SetActive(false);
+    }
+
+    /// <summary>
+    /// Used for button OnClick methods to open the menu
+    /// </summary>
+    public void OpenMenu() {
+        popups[PopUp.Menu].SetActive(true);
+    }
+
+    public void LoggedIn() {
+        ClosePopUp(PopUp.LogIn);
+        RunPopUp(PopUp.Menu);
+    }
+
+    /// <summary>
+    /// Runs the Log In pop up when there is no current log in detected
+    /// </summary>
+    private void ConfirmLogIn() {
+        List<PopUp> activePopUps = CurrentPopUps();
+
+        if (Teacher.currentTeacher == null && !activePopUps.Contains(PopUp.LogIn)) {
+            RunPopUp(PopUp.LogIn);
+        }
+    }
+
+    /// <summary>
+    /// Returns a list of all currently active pop ups
+    /// </summary>
+    public List<PopUp> CurrentPopUps() {
+        List<PopUp> result = new List<PopUp>();
+        for (int i = 0; i <= popups.Count - 1; i++) {
+            if (popups[(PopUp)i].gameObject.activeInHierarchy == true) {
+                result.Add((PopUp)i);
+            }
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Returns the currently active panel
+    /// </summary>
     public Panel CurrentPanel() {
-        for (int i = 0; i <= panels.Count; i++) {
+        for (int i = 0; i <= panels.Count - 1; i++) {
             if (panels[i].gameObject.activeInHierarchy == true) {
                 return (Panel)i;
             }
         }
-        return Panel.None;
+        return Panel.ScenarioList;
     }
 
-    public void SwitchPanel(int panel) {
+    /// <summary>
+    /// Switches from current panel to the given panel
+    /// </summary>
+    /// <param name="panel">The panel to switch to</param>
+    public void SwitchPanel(string panel) {
         // hide current panel
         panels[(int)CurrentPanel()].SetActive(false);
         // show new panel
-        panels[panel].SetActive(true);
+        panels[(int)StringEnumDecoder(panel)].SetActive(true);
+    }
+
+    /// <summary>
+    /// Converts string to Panel enum
+    /// </summary>
+    private Panel StringEnumDecoder(string input) {
+        Debug.Log("Decoding: " + input);
+        for (int i = 0; i < panels.Count; i++) {
+            if (input == ((Panel)i).ToString()) {
+                Debug.Log("Result: " + (Panel)i);
+                return (Panel)i;
+            }
+        }
+        return Panel.ScenarioList;
     }
 }
