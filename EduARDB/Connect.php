@@ -18,6 +18,11 @@ class Connect
 		$this->conn = $this->initConnection();
 	}
 
+	public function getSecretSalt()
+	{
+		return $this->ini['secret_salt'];
+	}
+
 	private function getDbCredentials()
 	{
 		$this->host = $this->ini['db_host'];
@@ -35,7 +40,7 @@ class Connect
 
 		catch
 		(\Exception $e) {
-			echo 'Err occured mfucker';
+			echo $e->getMessage() . "\r\n" . $e->getTraceAsString();
 			die();
 		}
 	}

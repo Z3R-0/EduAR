@@ -31,6 +31,16 @@ class RequestHandler
 		}
 	}
 
+	public function encryptQuery($string, $method, $key, $iv)
+	{
+		return base64_encode(openssl_encrypt($string, $method, $key, OPENSSL_RAW_DATA, $iv));
+	}
+
+	public function decryptQuery($encrypted, $method, $key, $iv)
+	{
+		return openssl_decrypt(base64_decode($encrypted), $method, $key, OPENSSL_RAW_DATA, $iv);
+	}
+
 	public function get($query, $options = null)
 	{
 		$pdoQuery = $this->conn->query($query);
