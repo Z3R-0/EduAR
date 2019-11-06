@@ -56,7 +56,6 @@ public class DBConnector : MonoBehaviour {
             if (successful)
                 Debug.Log("Created a new class");
         }, "ICTGS", "Game Studio");
-
         DBConnector.GetClassData((callback) => {
             foreach (var classObj in callback) {
                 PropertyInfo[] info = classObj.GetType().GetProperties();
@@ -458,7 +457,7 @@ public class DBConnector : MonoBehaviour {
             successful(true);
         }
     }
-    
+
     #endregion
 
     // Decodes the received JSON string to an object of the type requested by the parameters
@@ -511,6 +510,7 @@ public class DBConnector : MonoBehaviour {
                 foreach (var teacher in callback) {
                     PropertyInfo[] info = teacher.GetType().GetProperties();
                     if (email == info[(int)TeacherProperties.Email].GetValue(teacher, null).ToString() && password == info[(int)TeacherProperties.Password].GetValue(teacher, null).ToString()) {
+                        Teacher.currentTeacher = (Teacher) teacher;
                         ErrorBuffer().text = "Logging in...";
                         ErrorBuffer().color = Color.green;
                     } else {
