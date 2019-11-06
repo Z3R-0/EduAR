@@ -13,7 +13,6 @@ public enum PopUp {
     Menu
 }
 
-
 public class PanelHandler : MonoBehaviour {
 
     // Serialize the panels for use in code
