@@ -10,7 +10,8 @@ public enum Panel {
 
 public enum PopUp {
     LogIn,
-    Menu
+    Menu,
+    AddStudent
 }
 
 public class PanelHandler : MonoBehaviour {
@@ -69,6 +70,20 @@ public class PanelHandler : MonoBehaviour {
     public void OpenMenu() {
         popups[PopUp.Menu].SetActive(true);
     }
+    
+    /// <summary>
+    /// Used for button OnClick methods to close the add student pop up
+    /// </summary>
+    public void CloseAddStudent() {
+        popups[PopUp.AddStudent].SetActive(false);
+    }
+
+    /// <summary>
+    /// Used for button OnClick methods to open the add student pop up
+    /// </summary>
+    public void OpenAddStudent() {
+        popups[PopUp.AddStudent].SetActive(true);
+    }
 
     public void LoggedIn() {
         ClosePopUp(PopUp.LogIn);
@@ -126,10 +141,8 @@ public class PanelHandler : MonoBehaviour {
     /// Converts string to Panel enum
     /// </summary>
     private Panel StringEnumDecoder(string input) {
-        Debug.Log("Decoding: " + input);
         for (int i = 0; i < panels.Count; i++) {
             if (input == ((Panel)i).ToString()) {
-                Debug.Log("Result: " + (Panel)i);
                 return (Panel)i;
             }
         }

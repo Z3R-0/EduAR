@@ -48,26 +48,30 @@ public class DBConnector : MonoBehaviour {
         // Create secret IV
         iv = new byte[16] { 0x1, 0x4, 0x7, 0x2, 0x5, 0x8, 0x3, 0x6, 0x9, 0x4, 0x7, 0x10, 0x5, 0x8, 0x11, 0x6 };
 
+        // initialize panel handler
         panelHandler = GameObject.Find("MainCanvas").GetComponent<PanelHandler>();
+
+        // initialize static list of all students within class
+        Student.Students = new List<object>();
 
         // -------TESTING PURPOSES-------
         // Currently used for testing, this is the format to use when asking for data from the database
         // Replace GetUserData with the function that gives the needed info and read it using info[(int) enum PropertyName]
         // The PropertyName enum is found in each database class
-        /*
-        CreateClassFunc((successful) => {
-            if (successful)
-                Debug.Log("Created a new class");
-        }, "ICTGS", "Game Studio");
-        DBConnector.GetClassData((callback) => {
-            foreach (var classObj in callback) {
-                PropertyInfo[] info = classObj.GetType().GetProperties();
-                Debug.Log("Class ID: " + info[(int)ClassProperties.Id].GetValue(classObj, null));
-                Debug.Log("Class code: " + info[(int)ClassProperties.ClassCode].GetValue(classObj, null));
-                Debug.Log("Class name: " + info[(int)ClassProperties.Name].GetValue(classObj, null));
-            }
-        });
-        */
+
+        //CreateClassFunc((successful) => {
+        //    if (successful)
+        //        Debug.Log("Created a new class");
+        //}, "ICTGS", "Game Studio");
+        //DBConnector.GetClassData((callback) => {
+        //    foreach (var classObj in callback) {
+        //        PropertyInfo[] info = classObj.GetType().GetProperties();
+        //        Debug.Log("Class ID: " + info[(int)ClassProperties.Id].GetValue(classObj, null));
+        //        Debug.Log("Class code: " + info[(int)ClassProperties.ClassCode].GetValue(classObj, null));
+        //        Debug.Log("Class name: " + info[(int)ClassProperties.Name].GetValue(classObj, null));
+        //    }
+        //});
+
         // -------END OF TESTING PURPOSES-------
         ErrorBufferGO = GameObject.Find("ErrorBuffer");
     }

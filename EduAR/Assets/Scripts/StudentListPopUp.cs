@@ -15,7 +15,6 @@ public class StudentListPopUp : MonoBehaviour {
     }
 
     private void Start() {
-        Student.Students = new List<object>();
         DBConnector.GetUserData((callback) => {
             foreach (var student in callback) {
                 Student.Students.Add(student);
