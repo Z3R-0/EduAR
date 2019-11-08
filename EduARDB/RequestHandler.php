@@ -5,7 +5,7 @@ namespace eduar;
 use eduar\Type\User;
 use eduar\Type\Scenario;
 
-CONST METHODS = ['get', 'create', 'update', 'delete'];
+CONST METHODS = ['get', 'create', 'update', 'delete', 'createOrUpdate'];
 
 class RequestHandler
 {
@@ -20,7 +20,7 @@ class RequestHandler
 	{
 		try {
 			if (in_array($method, METHODS)) {
-				return $this->$method($query);
+				return $this->$method($query, $type);
 			} else {
 				$type = ucfirst($type);
 				$class = new $type($this->conn);
@@ -41,32 +41,37 @@ class RequestHandler
 		return openssl_decrypt(base64_decode($encrypted), $method, $key, OPENSSL_RAW_DATA, $iv);
 	}
 
-	public function get($query, $options = null)
+	public function get($query, $type = null)
 	{
 		$pdoQuery = $this->conn->query($query);
-		$result = $pdoQuery->fetchAll(\PDO::FETCH_ASSOC);
 
-		$arr = [];
-		if (count($result) > 0) {
-			foreach ($result as $row) {
-				$arr[] = $row;
-			}
-			return $arr;
+		if($type == "ScenarioAI") {
+			$result = $pdoQuery->fetch();
+			return $result['AUTO_INCREMENT'];
 		} else {
-			return '';
+			$result = $pdoQuery->fetchAll(\PDO::FETCH_ASSOC);
+			$arr = [];
+			if (count($result) > 0) {
+				foreach ($result as $row) {
+					$arr[] = $row;
+				}
+				return $arr;
+			} else {
+				return '';
+			}
 		}
 	}
 
-	public function create($query, $options = null)
+	public function create($query, $type = null)
 	{
 		if ($this->conn->exec($query) === false) {
-			return "Error occurred while creating User";
+			return "Error occurred while trying to execute query";
 		} else {
-			return "User successfully created";
+			return $this->conn->exec("SELECT * FROM ");
 		}
 	}
 
-	public function update($query, $options = null)
+	public function update($query, $type = null)
 	{
 		if(preg_match('/password = \'(.*?)\'/', $query, $match) !== false) {
 			$pass = hash('sha256', $match[1]);
@@ -75,7 +80,7 @@ class RequestHandler
 		$result = $this->conn->exec($query);
 
 		if ($result === false) {
-			return "Error occurred while updating User";
+			return "Error occurred while trying to execute query";
 		} else {
 			if(!empty($options)) {
 				$type = $options['type'];
@@ -88,10 +93,19 @@ class RequestHandler
 		}
 	}
 
-	public function delete($query, $options = null)
+	public function createOrUpdate($query, $type = null)
+	{
+		if($this->conn->exec($query) === false) {
+			return "Error occurred while trying to execute query";
+		} else {
+			return $this->conn->lastInsertId();
+		}
+	}
+
+	public function delete($query, $type = null)
 	{
 		if ($this->conn->exec($query) === false) {
-			return "Error occurred while trying to remove User";
+			return "Error occurred while trying to execute query";
 		} else {
 			return "User successfully removed";
 		}
