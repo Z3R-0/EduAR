@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+
 public enum StudentProperties {
     Id,
     Name,

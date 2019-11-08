@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public enum Panel {
     StudentList,
@@ -24,6 +25,7 @@ public class PanelHandler : MonoBehaviour {
     private List<GameObject> popupsList = new List<GameObject>();
     private Dictionary<PopUp, GameObject> popups = new Dictionary<PopUp, GameObject>();
 
+    private UITranslator translator;
 
 
     // Start is called before the first frame update
@@ -32,7 +34,7 @@ public class PanelHandler : MonoBehaviour {
         for (int i = 0; i < popupsList.Count; i++) {
             popups.Add((PopUp)i, popupsList[i]);
         }
-
+        translator = GameObject.Find("MainCanvas").GetComponent<UITranslator>();
         ConfirmLogIn();
     }
 
@@ -135,6 +137,11 @@ public class PanelHandler : MonoBehaviour {
         panels[(int)CurrentPanel()].SetActive(false);
         // show new panel
         panels[(int)StringEnumDecoder(panel)].SetActive(true);
+
+    }
+
+    public void EditScenario(Text hiddenId) {
+        translator.LoadScenarioDetails(hiddenId);
     }
 
     /// <summary>
