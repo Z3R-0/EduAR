@@ -150,9 +150,9 @@ public class DBConnector : MonoBehaviour {
 
     #region Database Interface UpdateOrCreate Functions
 
-    //public static Coroutine SaveScenarioFunc(Action<int> callback, int id, string name, int available, string figures, int classID, StoryType storytype) {
-    //    return Instance.StartCoroutine(SaveScenario(callback, id, name, available, classID, storytype));
-    //} 
+    public static Coroutine SaveScenarioContentFunc(Action<bool> successful, List<ScenarioQuestions> questions, List<ScenarioAnswers> answers, string name, int available, int classID, StoryType storytype, int? id = null) {
+        return Instance.StartCoroutine(SaveScenarioContent(successful, questions, answers, name, available, classID, storytype, id));
+    }
 
     #endregion
 
@@ -275,7 +275,7 @@ public class DBConnector : MonoBehaviour {
             Debug.LogError("Error occurred: " + question_get.error);
         } else {
             // See Decoder function for info on workings
-            callback(JSONDecoder(question_get.downloadHandler.text, typeof(Answer).Name));
+            callback(JSONDecoder(question_get.downloadHandler.text, typeof(ScenarioAnswers).Name));
         }
     }
 
@@ -383,7 +383,10 @@ public class DBConnector : MonoBehaviour {
 
     #region Database UpdateOrCreators
 
-    private static IEnumerator SaveScenario(Action<int> callback, int id, string name, int available, int classID, StoryType storytype) {
+    private static IEnumerator SaveScenario(Action<int> callback, string name, int available, int classID, StoryType storytype, int? id = null) {
+        if (id == null)
+            GetMaxScenarioId((temp) => { id = temp; });
+
         query = "type=Scenario&method=createOrUpdate&query= INSERT INTO scenario (id, name, available, class_id, storytype)" +
                 "VALUES (" + id + ", " + name + "," + available + "," + classID + "," + storytype + ") ON DUPLICATE KEY " +
                 "UPDATE name = " + name + ", available = " + available + ", class_id = " + classID + ", storytype = " + storytype + " ;";
@@ -399,17 +402,28 @@ public class DBConnector : MonoBehaviour {
         }
     }
 
-    private static IEnumerator SaveFigure(Action<object> callback, int id, string name, string information, Task task, string location, string questions) {
-        query = "type=Figure&method=createOrUpdate&query= ;";
+    private static IEnumerator SaveScenarioContent(Action<bool> successful, List<ScenarioQuestions> questions, List<ScenarioAnswers> answers, string name, int available, int classID, StoryType storytype, int? id = null) {
+        int? scenarioId = null;
 
-        string encryptedQuery = "&key=" + EncryptString(query, key, iv);
-        UnityWebRequest figure_createOrUpdate = UnityWebRequest.Get(dbUrl + query + encryptedQuery);
-        yield return figure_createOrUpdate.SendWebRequest();
+        SaveScenario((callback) => {
+            scenarioId = callback;
+        }, name, available, classID, storytype, id);
 
-        if (figure_createOrUpdate.isNetworkError || figure_createOrUpdate.isHttpError) {
-            Debug.LogError("Error occurred: " + figure_createOrUpdate.error);
+        if (scenarioId != null) {
+            query = "type=Figure&method=createOrUpdate&query=" + ScenarioQueryBuilder((int)scenarioId, questions, answers);
+
+            string encryptedQuery = "&key=" + EncryptString(query, key, iv);
+            UnityWebRequest figure_createOrUpdate = UnityWebRequest.Get(dbUrl + query + encryptedQuery);
+            yield return figure_createOrUpdate.SendWebRequest();
+
+            if (figure_createOrUpdate.isNetworkError || figure_createOrUpdate.isHttpError) {
+                Debug.LogError("Error occurred: " + figure_createOrUpdate.error);
+                successful(false);
+            } else {
+                successful(true);
+            }
         } else {
-            callback(JSONDecoder(figure_createOrUpdate.downloadHandler.text, typeof(Figure).Name));
+            Debug.LogError("Scenario ID could not be set, probably due to a network error (should appear above, if not YOU FUCKED UP)");
         }
     }
 
@@ -443,9 +457,9 @@ public class DBConnector : MonoBehaviour {
             case "Figure":
                 return JsonConvert.DeserializeObject<List<Figure>>(data);
             case "Question":
-                return JsonConvert.DeserializeObject<List<Figure>>(data);
+                return JsonConvert.DeserializeObject<List<ScenarioQuestions>>(data);
             case "Answer":
-                return JsonConvert.DeserializeObject<List<Answer>>(data);
+                return JsonConvert.DeserializeObject<List<ScenarioAnswers>>(data);
             case "Class":
                 return JsonConvert.DeserializeObject<List<Class>>(data);
             default:
@@ -634,8 +648,23 @@ public class DBConnector : MonoBehaviour {
         return plainText;
     }
 
-    public string QueryBuilder(IList<object> objects) {
-        return "";
+    private static string ScenarioQueryBuilder(int scenarioId, List<ScenarioQuestions> questions, List<ScenarioAnswers> answers) {
+        string query = "BEGIN;SET @scenario_id=" + scenarioId + ";";
+        foreach (ScenarioFigures f in Scenario.CurrentScenarioFigures) {
+            query += "INSERT INTO scenario_figures (scenario_id, figure_id, task, information) VALUES(@scenario_id, " + f.Figure_Id + ", " + f.Task + ", " + f.Information + "" +
+                    "ON DUPLICATE KEY UPDATE scenario_id = @scenario_id, figure_id = " + f.Figure_Id + ", task = " + f.Task + ", information = " + f.Information + ");" +
+                    "SET @scenario_figure_id = LAST_INSERT_ID();";
+            foreach (ScenarioQuestions q in questions) {
+                query += "INSERT INTO scenario_questions (scenario_figure_id, question_text) VALUES(@scenario_figure_id, " + q.Question_Text + "" +
+                    "ON DUPLICATE KEY UPDATE scenario_figure_id = @scenario_figure_id, question_text = " + q.Question_Text + ");" +
+                    "SET @scenario_question_id = LAST_INSERT_ID();";
+                foreach(ScenarioAnswers a in answers) {
+                    query += "INSERT INTO scenario_answers (scenario_question_id, answer_text, correct_answer) VALUES(@scenario_question_id, " + a.Answer_Text + ", " + a.Correct_Answer + "" +
+                    "ON DUPLICATE KEY UPDATE scenario_question_id = @scenario_question_id, answer_text = " + a.Answer_Text + ", correct_answer = " + a.Correct_Answer + ");";
+                }
+            }
+        }
+        return query + "COMMIT;";
     }
 
     public Text ErrorBuffer() {

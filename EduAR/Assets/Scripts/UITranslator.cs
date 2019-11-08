@@ -20,8 +20,8 @@ public class UITranslator : MonoBehaviour {
     private Text hiddenStudentIdField;
 
     private PanelHandler panelHandler;
-    private FigureProperties figureProperties;
-    private List<FigureProperties> propertiesPanels;
+    private FigurePanel figurePanelRef;
+    private Dictionary<GameObject, FigurePanel> propertiesPanels;
 
     private List<string> createScenarioStrings = new List<string>(new string[] { "name", "available", "figures", "class_id", "storytype" });
     private List<string> addStudentStrings = new List<string>(new string[] { "name", "pincode", "class_id" });
@@ -29,6 +29,8 @@ public class UITranslator : MonoBehaviour {
 
     private void Start() {
         panelHandler = GameObject.Find("MainCanvas").GetComponent<PanelHandler>();
+        figurePanelRef = GameObject.Find("PanelHolder").GetComponent<FigurePanel>();
+        propertiesPanels = new Dictionary<GameObject, FigurePanel>();
     }
 
     public void CreateNewScenario() {
@@ -40,7 +42,7 @@ public class UITranslator : MonoBehaviour {
                     throw new System.ArgumentException();
             }
         } catch (System.Exception e) {
-            Debug.LogError("Dictionary not properly initialized");
+            Debug.LogError("Dictionary not properly initialized, error: " + e.Message);
         }
 
         //DBConnector.CreateScenarioFunc((successful) => {
@@ -60,7 +62,7 @@ public class UITranslator : MonoBehaviour {
                     throw new System.ArgumentException();
             }
         } catch (System.Exception e) {
-            Debug.LogError("Dictionary not properly initialized");
+            Debug.LogError("Dictionary not properly initialized, error: " + e.Message);
         }
 
         DBConnector.CreateStudentFunc((successful) => {
@@ -116,14 +118,48 @@ public class UITranslator : MonoBehaviour {
             }
         }
         Scenario.CurrentScenarioFigures.Add(temp);
+        GameObject newPanel = figurePanelRef.InstantiatePanel();
+        propertiesPanels.Add(newPanel, newPanel.GetComponent<FigurePanel>());
+    }
+    
+    public void AddQuestion() {
+        figurePanelRef.InstantiateQuestion();
     }
 
+    public void AddAnswer(Transform parentQuestion) {
+        figurePanelRef.InstantiateAnswer(parentQuestion);
+    }
 
+    // TODO ADD ANSWER/QUESTION/FIGURE REMOVERS --------------------------------------------------------------------------------------------------------------------------------------
+    // PLEASE DO IT PLEASE DO IT PLEASE DO IT PLEASE DO IT PLEASE DO IT PLEASE DO IT PLEASE DO IT PLEASE DO IT PLEASE DO IT PLEASE DO IT PLEASE DO IT PLEASE DO IT PLEASE DO IT
 
-    public void TranslateFigureParameters() {
-        for (int propertiesPanel = 0; propertiesPanel < propertiesPanels.Count - 1; propertiesPanel++) {
+    public void SaveScenarioButtonFunc() {
+        List<ScenarioQuestions> questions = null;
+        List<ScenarioAnswers> answers = null;
 
+        foreach (var panel in propertiesPanels) {
+            propertiesPanels[panel.Key] = figurePanelRef.UpdateParameters(panel.Value);
+            questions = FigurePanelUIConverterQuestions(propertiesPanels[panel.Key]);
+            answers = FigurePanelUIConverterAnswers(propertiesPanels[panel.Key]);
         }
+
+        int available = 0;
+        if (scenarioAvailableToggle.isOn)
+            available = 1;
+
+        foreach (Figure f in Scenario.CurrentScenarioFigures) {
+            DBConnector.SaveScenarioContentFunc((successful) => {
+
+            }, questions, answers, scenarioNameInputField.text, available, Teacher.currentTeacher.Class_ID, (StoryType)scenarioStoryTypeDropDown.value, int.Parse(hiddenScenarioIdField.text));
+        }
+    }
+
+    private List<ScenarioQuestions> FigurePanelUIConverterQuestions(FigurePanel fp) {
+        throw new System.NotImplementedException();
+    }
+
+    private List<ScenarioAnswers> FigurePanelUIConverterAnswers(FigurePanel fp) {
+        throw new System.NotImplementedException();
     }
 
     public void LoadFigureList() {
@@ -140,7 +176,7 @@ public class UITranslator : MonoBehaviour {
         Debug.Log("HiddenId = " + hiddenScenarioId.ToString());
         if (hiddenScenarioId.text == "" || hiddenScenarioId == null) {
             scenarioAvailableToggle.isOn = true;
-            scenarioNameInputField.text = "TESTIE";
+            scenarioNameInputField.text = "";
             scenarioStoryTypeDropDown.value = (int)StoryType.Scavenger;
         } else {
             Scenario temp = null;
