@@ -16,8 +16,7 @@ public class FigurePanel : MonoBehaviour {
 
     public Dropdown task { get; set; }
     public Text informationFile { get; set; }
-    public Dictionary<InputField, List<InputField>> questionsAndAnswers { get; set; }
-    public List<Toggle> correctAnswers { get; set; }
+    public Dictionary<InputField, Dictionary<InputField, bool>> questionsAndAnswers { get; set; }
 
 
     public GameObject InstantiatePanel() {
@@ -33,7 +32,7 @@ public class FigurePanel : MonoBehaviour {
     }
 
     public FigurePanel UpdateParameters(FigurePanel panel) {
-        List<InputField> answers = new List<InputField>();
+        Dictionary<InputField, bool> answers = new Dictionary<InputField, bool>();
 
         panel.task = GetComponent<Dropdown>();
         foreach (GameObject go in this.transform) {
@@ -44,11 +43,7 @@ public class FigurePanel : MonoBehaviour {
         foreach(InputField question in questionsPrefabParent.transform) {
             foreach(InputField answer in question.gameObject.transform) {
                 if (answer.gameObject.tag == "Answer")
-                    answers.Add(answer);
-            }
-            foreach (Toggle correct in question.gameObject.transform) {
-                if (correct.isOn)
-                    correctAnswers.Add(correct);
+                    answers.Add(answer, GetComponent<Toggle>().isOn);
             }
             if (question.gameObject.tag == "Question")
                 panel.questionsAndAnswers.Add(question, answers);

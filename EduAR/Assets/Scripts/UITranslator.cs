@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+
 public class UITranslator : MonoBehaviour {
     [SerializeField]
     private InputField scenarioNameInputField;
@@ -29,7 +30,7 @@ public class UITranslator : MonoBehaviour {
 
     private void Start() {
         panelHandler = GameObject.Find("MainCanvas").GetComponent<PanelHandler>();
-        figurePanelRef = GameObject.Find("PanelHolder").GetComponent<FigurePanel>();
+        figurePanelRef = GameObject.Find("MainCanvas").GetComponent<FigurePanel>();
         propertiesPanels = new Dictionary<GameObject, FigurePanel>();
     }
 
@@ -134,32 +135,39 @@ public class UITranslator : MonoBehaviour {
     // PLEASE DO IT PLEASE DO IT PLEASE DO IT PLEASE DO IT PLEASE DO IT PLEASE DO IT PLEASE DO IT PLEASE DO IT PLEASE DO IT PLEASE DO IT PLEASE DO IT PLEASE DO IT PLEASE DO IT
 
     public void SaveScenarioButtonFunc() {
-        List<ScenarioQuestions> questions = null;
-        List<ScenarioAnswers> answers = null;
+        List<Dictionary<ScenarioQuestion, List<ScenarioAnswer>>> scenarioQnA = new List<Dictionary<ScenarioQuestion, List<ScenarioAnswer>>>();
 
         foreach (var panel in propertiesPanels) {
             propertiesPanels[panel.Key] = figurePanelRef.UpdateParameters(panel.Value);
-            questions = FigurePanelUIConverterQuestions(propertiesPanels[panel.Key]);
-            answers = FigurePanelUIConverterAnswers(propertiesPanels[panel.Key]);
+            scenarioQnA.Add(QnATranslator(panel.Value));
         }
 
         int available = 0;
         if (scenarioAvailableToggle.isOn)
             available = 1;
 
-        foreach (Figure f in Scenario.CurrentScenarioFigures) {
+        for (int i = 0; i <= Scenario.CurrentScenarioFigures.Count - 1; i++) {
             DBConnector.SaveScenarioContentFunc((successful) => {
 
-            }, questions, answers, scenarioNameInputField.text, available, Teacher.currentTeacher.Class_ID, (StoryType)scenarioStoryTypeDropDown.value, int.Parse(hiddenScenarioIdField.text));
+            }, scenarioQnA[i], scenarioNameInputField.text, available, Teacher.currentTeacher.Class_ID, (StoryType)scenarioStoryTypeDropDown.value, int.Parse(hiddenScenarioIdField.text));
         }
     }
 
-    private List<ScenarioQuestions> FigurePanelUIConverterQuestions(FigurePanel fp) {
-        throw new System.NotImplementedException();
-    }
+    private Dictionary<ScenarioQuestion, List<ScenarioAnswer>> QnATranslator(FigurePanel fp) {
+        Dictionary<ScenarioQuestion, List<ScenarioAnswer>> result = new Dictionary<ScenarioQuestion, List<ScenarioAnswer>>();
 
-    private List<ScenarioAnswers> FigurePanelUIConverterAnswers(FigurePanel fp) {
-        throw new System.NotImplementedException();
+        foreach (var question in fp.questionsAndAnswers) {
+            List<ScenarioAnswer> answersTemp = new List<ScenarioAnswer>();
+            foreach (var answer in question.Value) {
+                int trueOrFalse = 0;
+                if (answer.Value)
+                    trueOrFalse = 1;
+                answersTemp.Add(new ScenarioAnswer(answer.Key.text, trueOrFalse));
+            }
+            result.Add(new ScenarioQuestion(question.Key.text), answersTemp);
+        }
+
+        return result;
     }
 
     public void LoadFigureList() {
