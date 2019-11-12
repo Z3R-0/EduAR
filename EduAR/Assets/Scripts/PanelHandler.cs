@@ -37,11 +37,7 @@ public class PanelHandler : MonoBehaviour {
         translator = GameObject.Find("MainCanvas").GetComponent<UITranslator>();
         ConfirmLogIn();
     }
-
-    // Update is called once per frame
-    void Update() {
-        
-    }
+    
 
     /// <summary>
     /// Activates the given pop up
@@ -88,8 +84,6 @@ public class PanelHandler : MonoBehaviour {
     }
 
     public void LoggedIn() {
-        Teacher.currentTeacher = new Teacher();
-        Teacher.currentTeacher.Class_ID = 1;
         ClosePopUp(PopUp.LogIn);
         RunPopUp(PopUp.Menu);
     }

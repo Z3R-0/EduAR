@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 3671709405990810946}
   - component: {fileID: 1168264789342326282}
   m_Layer: 5
-  m_Name: ModelImage
+  m_Name: FigureImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -86,8 +86,8 @@ GameObject:
   - component: {fileID: 5456515403800986989}
   - component: {fileID: 5456515403800986988}
   m_Layer: 5
-  m_Name: Model name text
-  m_TagString: Untagged
+  m_Name: Figure name text
+  m_TagString: FigureName
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -166,7 +166,7 @@ GameObject:
   - component: {fileID: 5456515404389593921}
   - component: {fileID: 1824288822019521488}
   m_Layer: 5
-  m_Name: Model item
+  m_Name: Figure item
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -263,8 +263,8 @@ GameObject:
   - component: {fileID: 8514959517781610273}
   - component: {fileID: 2086766125077060215}
   m_Layer: 5
-  m_Name: HiddenModelID
-  m_TagString: Untagged
+  m_Name: HiddenFigureID
+  m_TagString: FigureHiddenId
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -329,4 +329,4 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: New Text
+  m_Text: 

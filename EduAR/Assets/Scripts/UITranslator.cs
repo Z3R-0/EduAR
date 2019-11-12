@@ -20,6 +20,10 @@ public class UITranslator : MonoBehaviour {
     private InputField studentPincodeInputField;
     [SerializeField]
     private Text hiddenStudentIdField;
+    [SerializeField]
+    private GameObject FigureListPrefab;
+    [SerializeField]
+    private Transform FigurePrefabParent;
 
     private PanelHandler panelHandler;
     private FigurePanel figurePanelRef;
@@ -33,13 +37,6 @@ public class UITranslator : MonoBehaviour {
         panelHandler = GameObject.Find("MainCanvas").GetComponent<PanelHandler>();
         figurePanelRef = GameObject.Find("MainCanvas").GetComponent<FigurePanel>();
         propertiesPanels = new Dictionary<GameObject, FigurePanel>();
-        
-        DBConnector.GetFigureData((callback) => {
-            foreach (object figure in callback) {
-                Figure.FigureList.Add((Figure)figure);
-                AddFigure("1");
-            }
-        });
     }
 
     //public void CreateNewScenario() {
@@ -196,10 +193,21 @@ public class UITranslator : MonoBehaviour {
         Figure.FigureList.Clear();
         DBConnector.GetFigureData((callback) => {
             foreach (object figure in callback) {
-                Figure.FigureList.Add(figure);
+                Figure.FigureList.Add((Figure)figure);
+                InstantiateFigureList((Figure)figure);
             }
         });
     }
+
+    private void InstantiateFigureList(Figure f) {
+        GameObject instance = Instantiate(FigureListPrefab, FigurePrefabParent);
+        foreach(Transform go in instance.transform) {
+            if (go.tag == "FigureName")
+                go.GetComponent<Text>().text = f.Name;
+            if (go.tag == "FigureHiddenId")
+                go.GetComponent<Text>().text = f.Id.ToString();
+        }
+    } 
 
     public void LoadScenarioDetails(Text hiddenScenarioId) {
         hiddenScenarioIdField.text = hiddenScenarioId.text;

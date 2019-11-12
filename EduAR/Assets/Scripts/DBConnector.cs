@@ -63,7 +63,6 @@ public class DBConnector : MonoBehaviour {
 
         // initialize static list of all students within class
         Student.Students = new List<object>();
-        Figure.FigureList = new List<object>();
         translator.LoadFigureList();
 
         // -------TESTING PURPOSES-------
