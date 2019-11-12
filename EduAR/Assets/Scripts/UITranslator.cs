@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -32,27 +33,34 @@ public class UITranslator : MonoBehaviour {
         panelHandler = GameObject.Find("MainCanvas").GetComponent<PanelHandler>();
         figurePanelRef = GameObject.Find("MainCanvas").GetComponent<FigurePanel>();
         propertiesPanels = new Dictionary<GameObject, FigurePanel>();
-    }
-
-    public void CreateNewScenario() {
-        Dictionary<string, object> info = GetScenarioCreationValues();
-
-        try {
-            foreach (var item in info) {
-                if (!createScenarioStrings.Contains(item.Key))
-                    throw new System.ArgumentException();
+        
+        DBConnector.GetFigureData((callback) => {
+            foreach (object figure in callback) {
+                Figure.FigureList.Add((Figure)figure);
+                AddFigure("1");
             }
-        } catch (System.Exception e) {
-            Debug.LogError("Dictionary not properly initialized, error: " + e.Message);
-        }
-
-        //DBConnector.CreateScenarioFunc((successful) => {
-        //    if (successful)
-        //        Debug.Log("Successfully created scenario"); // Add a feature to let users know of success or error
-        //    else
-        //        Debug.LogError("Something went wrong, read error above for more info");
-        //}, (string)info[createScenarioStrings[0]], (int)info[createScenarioStrings[1]], (string)info[createScenarioStrings[2]], (int)info[createScenarioStrings[3]], (StoryType)info[createScenarioStrings[4]]);
+        });
     }
+
+    //public void CreateNewScenario() {
+    //    Dictionary<string, object> info = GetScenarioCreationValues();
+
+    //    try {
+    //        foreach (var item in info) {
+    //            if (!createScenarioStrings.Contains(item.Key))
+    //                throw new System.ArgumentException();
+    //        }
+    //    } catch (System.Exception e) {
+    //        Debug.LogError("Dictionary not properly initialized, error: " + e.Message);
+    //    }
+
+    //    //DBConnector.CreateScenarioFunc((successful) => {
+    //    //    if (successful)
+    //    //        Debug.Log("Successfully created scenario"); // Add a feature to let users know of success or error
+    //    //    else
+    //    //        Debug.LogError("Something went wrong, read error above for more info");
+    //    //}, (string)info[createScenarioStrings[0]], (int)info[createScenarioStrings[1]], (string)info[createScenarioStrings[2]], (int)info[createScenarioStrings[3]], (StoryType)info[createScenarioStrings[4]]);
+    //}
 
     public void AddStudent() {
         Dictionary<string, object> info = GetStudentAddValues();
@@ -78,20 +86,20 @@ public class UITranslator : MonoBehaviour {
         }, (string)info[addStudentStrings[0]], (int)info[addStudentStrings[1]], (int)info[addStudentStrings[2]]);
     }
 
-    private Dictionary<string, object> GetScenarioCreationValues() {
-        Dictionary<string, object> result = new Dictionary<string, object>();
+    //private Dictionary<string, object> GetScenarioCreationValues() {
+    //    Dictionary<string, object> result = new Dictionary<string, object>();
 
-        result.Add("name", scenarioNameInputField.text);
-        if (scenarioAvailableToggle.isOn)
-            result.Add("available", 1);
-        else
-            result.Add("available", 0);
-        result.Add("figures", GetCurrentScenarioFigureList());
-        result.Add("class_id", Teacher.currentTeacher.Class_ID);
-        result.Add("storytype", scenarioStoryTypeDropDown.itemText);
+    //    result.Add("name", scenarioNameInputField.text);
+    //    if (scenarioAvailableToggle.isOn)
+    //        result.Add("available", 1);
+    //    else
+    //        result.Add("available", 0);
+    //    result.Add("figures", GetCurrentScenarioFigureList());
+    //    result.Add("class_id", Teacher.currentTeacher.Class_ID);
+    //    result.Add("storytype", scenarioStoryTypeDropDown.itemText);
 
-        return result;
-    }
+    //    return result;
+    //}
 
     private Dictionary<string, object> GetStudentAddValues() {
         Dictionary<string, object> result = new Dictionary<string, object>();
@@ -103,19 +111,19 @@ public class UITranslator : MonoBehaviour {
         return result;
     }
 
-    public string GetCurrentScenarioFigureList() {
-        throw new System.NotImplementedException();
-    }
+    //public string GetCurrentScenarioFigureList() {
+    //    throw new System.NotImplementedException();
+    //}
 
-    public void AddFigure(Text hiddenFigureId) {
+    public void AddFigure(string hiddenFigureId) {
         if (Scenario.CurrentScenarioFigures == null)
-            Scenario.CurrentScenarioFigures = new List<object>();
+            Scenario.CurrentScenarioFigures = new List<ScenarioFigure>();
 
-        Figure temp = null;
+        ScenarioFigure temp = null;
 
         foreach (Figure f in Figure.FigureList) {
-            if (f.Id == int.Parse(hiddenFigureId.text)) {
-                temp = f;
+            if (f.Id == int.Parse(hiddenFigureId)) {
+                temp = new ScenarioFigure(f.Id);
             }
         }
         Scenario.CurrentScenarioFigures.Add(temp);
@@ -123,7 +131,7 @@ public class UITranslator : MonoBehaviour {
         propertiesPanels.Add(newPanel, newPanel.GetComponent<FigurePanel>());
     }
     
-    public void AddQuestion() {
+    public void AddQuestion(Transform parentFigurePanel) {
         figurePanelRef.InstantiateQuestion();
     }
 
@@ -136,9 +144,14 @@ public class UITranslator : MonoBehaviour {
 
     public void SaveScenarioButtonFunc() {
         List<Dictionary<ScenarioQuestion, List<ScenarioAnswer>>> scenarioQnA = new List<Dictionary<ScenarioQuestion, List<ScenarioAnswer>>>();
+        Dictionary<GameObject, FigurePanel> PanelTemp = new Dictionary<GameObject, FigurePanel>();
+        int? hiddenId = null;
 
         foreach (var panel in propertiesPanels) {
-            propertiesPanels[panel.Key] = figurePanelRef.UpdateParameters(panel.Value);
+            PanelTemp[panel.Key] = figurePanelRef.UpdateParameters(panel.Value);
+        }
+
+        foreach (var panel in PanelTemp) {
             scenarioQnA.Add(QnATranslator(panel.Value));
         }
 
@@ -146,10 +159,19 @@ public class UITranslator : MonoBehaviour {
         if (scenarioAvailableToggle.isOn)
             available = 1;
 
+        if (hiddenScenarioIdField.text != "")
+            hiddenId = int.Parse(hiddenScenarioIdField.text);
+
+        foreach(Dictionary<ScenarioQuestion, List<ScenarioAnswer>> dick in scenarioQnA) {
+            foreach(var question in dick) {
+                foreach(var answer in question.Value) {
+                }
+            }
+        }
+
         for (int i = 0; i <= Scenario.CurrentScenarioFigures.Count - 1; i++) {
             DBConnector.SaveScenarioContentFunc((successful) => {
-
-            }, scenarioQnA[i], scenarioNameInputField.text, available, Teacher.currentTeacher.Class_ID, (StoryType)scenarioStoryTypeDropDown.value, int.Parse(hiddenScenarioIdField.text));
+            }, scenarioQnA[i], scenarioNameInputField.text, available, Teacher.currentTeacher.Class_ID, (StoryType)scenarioStoryTypeDropDown.value, hiddenId);
         }
     }
 

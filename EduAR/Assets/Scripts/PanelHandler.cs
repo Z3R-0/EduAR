@@ -88,6 +88,8 @@ public class PanelHandler : MonoBehaviour {
     }
 
     public void LoggedIn() {
+        Teacher.currentTeacher = new Teacher();
+        Teacher.currentTeacher.Class_ID = 1;
         ClosePopUp(PopUp.LogIn);
         RunPopUp(PopUp.Menu);
     }
