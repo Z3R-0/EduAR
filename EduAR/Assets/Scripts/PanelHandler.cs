@@ -37,11 +37,7 @@ public class PanelHandler : MonoBehaviour {
         translator = GameObject.Find("MainCanvas").GetComponent<UITranslator>();
         ConfirmLogIn();
     }
-
-    // Update is called once per frame
-    void Update() {
-        
-    }
+    
 
     /// <summary>
     /// Activates the given pop up

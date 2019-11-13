@@ -16,8 +16,7 @@ public class FigurePanel : MonoBehaviour {
 
     public Dropdown task { get; set; }
     public Text informationFile { get; set; }
-    public Dictionary<InputField, List<InputField>> questionsAndAnswers { get; set; }
-    public List<Toggle> correctAnswers { get; set; }
+    public Dictionary<InputField, Dictionary<InputField, bool>> questionsAndAnswers = new Dictionary<InputField, Dictionary<InputField, bool>>();
 
 
     public GameObject InstantiatePanel() {
@@ -33,25 +32,23 @@ public class FigurePanel : MonoBehaviour {
     }
 
     public FigurePanel UpdateParameters(FigurePanel panel) {
-        List<InputField> answers = new List<InputField>();
+        Dictionary<InputField, bool> answers = new Dictionary<InputField, bool>();
 
-        panel.task = GetComponent<Dropdown>();
-        foreach (GameObject go in this.transform) {
+        panel.task = panel.GetComponent<Dropdown>();
+        foreach (Transform go in panel.transform) {
             if (go.tag == "Information")
-                panel.informationFile = go.GetComponent<Text>();
+                panel.informationFile.text = "test.txt";
+                //panel.informationFile = go.GetComponent<Text>();
         }
 
-        foreach(InputField question in questionsPrefabParent.transform) {
-            foreach(InputField answer in question.gameObject.transform) {
+        foreach(Transform question in questionsPrefabParent.transform) {
+            foreach(Transform answer in question.gameObject.transform) {
                 if (answer.gameObject.tag == "Answer")
-                    answers.Add(answer);
+                    answers.Add(answer.gameObject.GetComponentInParent<Transform>().gameObject.GetComponentInChildren<InputField>(), answer.gameObject.GetComponentInParent<Transform>().gameObject.GetComponentInChildren<Toggle>().isOn);
             }
-            foreach (Toggle correct in question.gameObject.transform) {
-                if (correct.isOn)
-                    correctAnswers.Add(correct);
+            if (question.gameObject.tag == "Question") {
+                panel.questionsAndAnswers.Add(question.gameObject.GetComponentInParent<Transform>().gameObject.GetComponentInChildren<InputField>(), answers);
             }
-            if (question.gameObject.tag == "Question")
-                panel.questionsAndAnswers.Add(question, answers);
         }
 
         return panel;

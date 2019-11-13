@@ -14,10 +14,10 @@ public enum FigureProperties {
 }
 
 public class Figure {
-    public static IList<object> FigureList;
+    public static List<Figure> FigureList = new List<Figure>();
 
     public int Id { get; set; }
-    public int Image { get; set; }
+    public string Image { get; set; }
     public string Name { get; set; }
     public string Location { get; set; }
 }

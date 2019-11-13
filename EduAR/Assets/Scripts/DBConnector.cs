@@ -48,20 +48,21 @@ public class DBConnector : MonoBehaviour {
         }
     }
 
-    private void Start() {
+    private void Awake() {
         SHA256 mySHA256 = SHA256Managed.Create();
         key = mySHA256.ComputeHash(Encoding.ASCII.GetBytes(secretSalt));
 
         // Create secret IV
         iv = new byte[16] { 0x1, 0x4, 0x7, 0x2, 0x5, 0x8, 0x3, 0x6, 0x9, 0x4, 0x7, 0x10, 0x5, 0x8, 0x11, 0x6 };
+    }
 
+    private void Start() {
         // initialize panel handler
         panelHandler = GameObject.Find("MainCanvas").GetComponent<PanelHandler>();
         translator = GameObject.Find("MainCanvas").GetComponent<UITranslator>();
 
         // initialize static list of all students within class
         Student.Students = new List<object>();
-        Figure.FigureList = new List<object>();
         translator.LoadFigureList();
 
         // -------TESTING PURPOSES-------
@@ -122,6 +123,10 @@ public class DBConnector : MonoBehaviour {
         return Instance.StartCoroutine(StringToObject(callback, data, type));
     }
 
+    public static Coroutine GetMaxScenarioIdFunc(Action<int> callback) {
+        return Instance.StartCoroutine(GetMaxScenarioId(callback));
+    }
+
     #endregion
 
     #region Database Interface Poster Functions
@@ -150,8 +155,12 @@ public class DBConnector : MonoBehaviour {
 
     #region Database Interface UpdateOrCreate Functions
 
-    public static Coroutine SaveScenarioContentFunc(Action<bool> successful, List<ScenarioQuestions> questions, List<ScenarioAnswers> answers, string name, int available, int classID, StoryType storytype, int? id = null) {
-        return Instance.StartCoroutine(SaveScenarioContent(successful, questions, answers, name, available, classID, storytype, id));
+    public static Coroutine SaveScenarioContentFunc(Action<bool> successful, Dictionary<ScenarioQuestion, List<ScenarioAnswer>> QnA, string name, int available, int classID, StoryType storytype, int? id = null) {
+        return Instance.StartCoroutine(SaveScenarioContent(successful, QnA, name, available, classID, storytype, id));
+    }
+
+    public static Coroutine SaveScenarioFunc(Action<int> successful, string name, int available, int classID, StoryType storytype, int? id = null) {
+        return Instance.StartCoroutine(SaveScenario(successful, name, available, classID, storytype, id));
     }
 
     #endregion
@@ -275,7 +284,7 @@ public class DBConnector : MonoBehaviour {
             Debug.LogError("Error occurred: " + question_get.error);
         } else {
             // See Decoder function for info on workings
-            callback(JSONDecoder(question_get.downloadHandler.text, typeof(ScenarioAnswers).Name));
+            callback(JSONDecoder(question_get.downloadHandler.text, typeof(ScenarioAnswer).Name));
         }
     }
 
@@ -385,11 +394,11 @@ public class DBConnector : MonoBehaviour {
 
     private static IEnumerator SaveScenario(Action<int> callback, string name, int available, int classID, StoryType storytype, int? id = null) {
         if (id == null)
-            GetMaxScenarioId((temp) => { id = temp; });
+            yield return GetMaxScenarioIdFunc((temp) => { id = temp; });
 
-        query = "type=Scenario&method=createOrUpdate&query= INSERT INTO scenario (id, name, available, class_id, storytype)" +
-                "VALUES (" + id + ", " + name + "," + available + "," + classID + "," + storytype + ") ON DUPLICATE KEY " +
-                "UPDATE name = " + name + ", available = " + available + ", class_id = " + classID + ", storytype = " + storytype + " ;";
+        query = "type=Scenario&method=createOrUpdate&query=INSERT INTO scenario (id, name, available, class_id, storytype)" +
+                "VALUES (" + id + ", '" + name + "'," + available + "," + classID + ",'" + storytype + "') ON DUPLICATE KEY " +
+                "UPDATE name = '" + name + "', available = " + available + ", class_id = " + classID + ", storytype = '" + storytype + "';";
 
         string encryptedQuery = "&key=" + EncryptString(query, key, iv);
         UnityWebRequest scenario_updateOrCreate = UnityWebRequest.Get(dbUrl + query + encryptedQuery);
@@ -402,17 +411,21 @@ public class DBConnector : MonoBehaviour {
         }
     }
 
-    private static IEnumerator SaveScenarioContent(Action<bool> successful, List<ScenarioQuestions> questions, List<ScenarioAnswers> answers, string name, int available, int classID, StoryType storytype, int? id = null) {
+    private static IEnumerator SaveScenarioContent(Action<bool> successful, Dictionary<ScenarioQuestion, List<ScenarioAnswer>> QnA, string name, int available, int classID, StoryType storytype, int? id = null) {
         int? scenarioId = null;
 
-        SaveScenario((callback) => {
+        name = "Test";
+
+        yield return SaveScenarioFunc((callback) => {
             scenarioId = callback;
         }, name, available, classID, storytype, id);
 
         if (scenarioId != null) {
-            query = "type=Figure&method=createOrUpdate&query=" + ScenarioQueryBuilder((int)scenarioId, questions, answers);
+            query = "type=Figure&method=createOrUpdate&query=" + ScenarioQueryBuilder((int)scenarioId, QnA);
 
             string encryptedQuery = "&key=" + EncryptString(query, key, iv);
+            Debug.Log(query);
+
             UnityWebRequest figure_createOrUpdate = UnityWebRequest.Get(dbUrl + query + encryptedQuery);
             yield return figure_createOrUpdate.SendWebRequest();
 
@@ -420,6 +433,7 @@ public class DBConnector : MonoBehaviour {
                 Debug.LogError("Error occurred: " + figure_createOrUpdate.error);
                 successful(false);
             } else {
+                Debug.Log(figure_createOrUpdate.downloadHandler.text);
                 successful(true);
             }
         } else {
@@ -428,7 +442,7 @@ public class DBConnector : MonoBehaviour {
     }
 
     private static IEnumerator GetMaxScenarioId(Action<int> callback) {
-        query = "type=ScenarioAI&method=Get&query= SELECT `AUTO_INCREMENT` FROM INFORMATION_SCHEMA.TABLES " +
+        query = "type=ScenarioAI&method=get&query=SELECT `AUTO_INCREMENT` FROM INFORMATION_SCHEMA.TABLES " +
                 "WHERE TABLE_SCHEMA = 'id11398216_eduar' AND TABLE_NAME = 'scenario';";
 
         string encryptedQuery = "&key=" + EncryptString(query, key, iv);
@@ -457,9 +471,9 @@ public class DBConnector : MonoBehaviour {
             case "Figure":
                 return JsonConvert.DeserializeObject<List<Figure>>(data);
             case "Question":
-                return JsonConvert.DeserializeObject<List<ScenarioQuestions>>(data);
+                return JsonConvert.DeserializeObject<List<ScenarioQuestion>>(data);
             case "Answer":
-                return JsonConvert.DeserializeObject<List<ScenarioAnswers>>(data);
+                return JsonConvert.DeserializeObject<List<ScenarioAnswer>>(data);
             case "Class":
                 return JsonConvert.DeserializeObject<List<Class>>(data);
             default:
@@ -648,23 +662,23 @@ public class DBConnector : MonoBehaviour {
         return plainText;
     }
 
-    private static string ScenarioQueryBuilder(int scenarioId, List<ScenarioQuestions> questions, List<ScenarioAnswers> answers) {
-        string query = "BEGIN;SET @scenario_id=" + scenarioId + ";";
-        foreach (ScenarioFigures f in Scenario.CurrentScenarioFigures) {
-            query += "INSERT INTO scenario_figures (scenario_id, figure_id, task, information) VALUES(@scenario_id, " + f.Figure_Id + ", " + f.Task + ", " + f.Information + "" +
-                    "ON DUPLICATE KEY UPDATE scenario_id = @scenario_id, figure_id = " + f.Figure_Id + ", task = " + f.Task + ", information = " + f.Information + ");" +
+    private static string ScenarioQueryBuilder(int scenarioId, Dictionary<ScenarioQuestion, List<ScenarioAnswer>> QnA) {
+        string query = "SET @scenario_id=" + scenarioId + ";";
+        foreach (ScenarioFigure f in Scenario.CurrentScenarioFigures) {
+            query += "INSERT INTO scenario_figures (scenario_id, figure_id, task, information) VALUES(@scenario_id, " + f.Figure_Id + ", '" + f.Task + "', '" + f.Information + "')" +
+                    "ON DUPLICATE KEY UPDATE scenario_id = @scenario_id, figure_id = " + f.Figure_Id + ", task = '" + f.Task + "', information = '" + f.Information + "';" +
                     "SET @scenario_figure_id = LAST_INSERT_ID();";
-            foreach (ScenarioQuestions q in questions) {
-                query += "INSERT INTO scenario_questions (scenario_figure_id, question_text) VALUES(@scenario_figure_id, " + q.Question_Text + "" +
-                    "ON DUPLICATE KEY UPDATE scenario_figure_id = @scenario_figure_id, question_text = " + q.Question_Text + ");" +
+            foreach (var question in QnA) {
+                query += "INSERT INTO scenario_questions (scenario_figure_id, question_text) VALUES(@scenario_figure_id, '" + question.Key.Question_Text + "')" +
+                    "ON DUPLICATE KEY UPDATE scenario_figure_id = @scenario_figure_id, question_text = '" + question.Key.Question_Text + "';" +
                     "SET @scenario_question_id = LAST_INSERT_ID();";
-                foreach(ScenarioAnswers a in answers) {
-                    query += "INSERT INTO scenario_answers (scenario_question_id, answer_text, correct_answer) VALUES(@scenario_question_id, " + a.Answer_Text + ", " + a.Correct_Answer + "" +
-                    "ON DUPLICATE KEY UPDATE scenario_question_id = @scenario_question_id, answer_text = " + a.Answer_Text + ", correct_answer = " + a.Correct_Answer + ");";
+                foreach(ScenarioAnswer a in question.Value) {
+                    query += "INSERT INTO scenario_answers (scenario_question_id, answer_text, correct_answer) VALUES(@scenario_question_id, '" + a.Answer_Text + "', " + a.Correct_Answer + ")" +
+                    "ON DUPLICATE KEY UPDATE scenario_question_id = @scenario_question_id, answer_text = '" + a.Answer_Text + "', correct_answer = " + a.Correct_Answer + ";";
                 }
             }
         }
-        return query + "COMMIT;";
+        return query;
     }
 
     public Text ErrorBuffer() {

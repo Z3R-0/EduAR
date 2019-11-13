@@ -19,7 +19,7 @@ public enum ScenarioProperties {
 
 public class Scenario : MonoBehaviour {
     public static IList<object> Scenarios;
-    public static IList<object> CurrentScenarioFigures;
+    public static List<ScenarioFigure> CurrentScenarioFigures;
 
     public int Id { get; set; }
     public string Name { get; set; }
