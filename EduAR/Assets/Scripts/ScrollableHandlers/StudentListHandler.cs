@@ -9,13 +9,6 @@ public class StudentListHandler : MonoBehaviour {
     [SerializeField]
     private Transform StudentPrefabParent;
 
-    public void TogglePanel(GameObject panel) {
-        if (panel.activeInHierarchy)
-            panel.SetActive(false);
-        else
-            panel.SetActive(true);
-    }
-
     private void Start() {
         DBConnector.GetUserData((callback) => {
             foreach (var student in callback) {

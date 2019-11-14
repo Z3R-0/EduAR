@@ -83,11 +83,12 @@ public class UITranslator : MonoBehaviour {
                     Student student = (Student)callback[0];
                     PropertyInfo[] properties = student.GetType().GetProperties();
                     GameObject studentPrefab = Instantiate(StudentListPrefab, StudentPrefabParent.transform);
-                    InputField[] inputs = studentPrefab.transform.parent.GetComponentsInChildren<InputField>();
+                    Text[] texts = studentPrefab.GetComponentsInChildren<Text>();
+                    InputField[] inputs = studentPrefab.GetComponentsInChildren<InputField>();
                     inputs[0].text = properties[(int)StudentProperties.Name].GetValue(student, null).ToString();
                     inputs[1].text = properties[(int)StudentProperties.Pincode].GetValue(student, null).ToString();
-                    inputs[2].text = properties[(int)StudentProperties.Id].GetValue(student, null).ToString();
-                    inputs[3].text = properties[(int)StudentProperties.Name].GetValue(student, null).ToString();
+                    texts[2].text = properties[(int)StudentProperties.Id].GetValue(student, null).ToString();
+                    texts[3].text = properties[(int)StudentProperties.Name].GetValue(student, null).ToString();
                 }, isTeacher: false, studentName: (string)info[addStudentStrings[0]]);
                 panelHandler.CloseAddStudent();
             } else {

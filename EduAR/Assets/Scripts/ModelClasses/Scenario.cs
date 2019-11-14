@@ -17,7 +17,7 @@ public enum ScenarioProperties {
     StoryType
 }
 
-public class Scenario : MonoBehaviour {
+public class Scenario {
     public static IList<object> Scenarios;
     public static List<ScenarioFigure> CurrentScenarioFigures;
 

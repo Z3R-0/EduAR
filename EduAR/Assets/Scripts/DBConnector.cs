@@ -63,6 +63,7 @@ public class DBConnector : MonoBehaviour {
 
         // initialize static list of all students within class
         Student.Students = new List<object>();
+        Scenario.Scenarios = new List<object>();
         translator.LoadFigureList();
 
         // -------TESTING PURPOSES-------
@@ -219,7 +220,7 @@ public class DBConnector : MonoBehaviour {
         if (scenario_get.isNetworkError || scenario_get.isHttpError) {
             Debug.LogError("Error occurred: " + scenario_get.error);
         } else {
-            // See Decoder function for info on workings
+            // See Decoder function info on workings
             callback(JSONDecoder(scenario_get.downloadHandler.text, typeof(Scenario).Name));
         }
     }
