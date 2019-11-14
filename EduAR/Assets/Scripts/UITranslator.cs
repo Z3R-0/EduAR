@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
@@ -24,6 +25,10 @@ public class UITranslator : MonoBehaviour {
     private GameObject FigureListPrefab;
     [SerializeField]
     private Transform FigurePrefabParent;
+    [SerializeField]
+    private GameObject StudentListPrefab;
+    [SerializeField]
+    private Transform StudentPrefabParent;
 
     private PanelHandler panelHandler;
     private FigurePanel figurePanelRef;
@@ -75,6 +80,14 @@ public class UITranslator : MonoBehaviour {
             if (successful) {
                 DBConnector.GetUserData((callback) => {
                     Student.Students.Add(callback[0]);
+                    Student student = (Student)callback[0];
+                    PropertyInfo[] properties = student.GetType().GetProperties();
+                    GameObject studentPrefab = Instantiate(StudentListPrefab, StudentPrefabParent.transform);
+                    InputField[] inputs = studentPrefab.transform.parent.GetComponentsInChildren<InputField>();
+                    inputs[0].text = properties[(int)StudentProperties.Name].GetValue(student, null).ToString();
+                    inputs[1].text = properties[(int)StudentProperties.Pincode].GetValue(student, null).ToString();
+                    inputs[2].text = properties[(int)StudentProperties.Id].GetValue(student, null).ToString();
+                    inputs[3].text = properties[(int)StudentProperties.Name].GetValue(student, null).ToString();
                 }, isTeacher: false, studentName: (string)info[addStudentStrings[0]]);
                 panelHandler.CloseAddStudent();
             } else {

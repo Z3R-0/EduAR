@@ -3,9 +3,11 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class StudentListPopUp : MonoBehaviour {
+public class StudentListHandler : MonoBehaviour {
     [SerializeField]
-    private GameObject studentContainerPrefab;
+    private GameObject StudentListPrefab;
+    [SerializeField]
+    private Transform StudentPrefabParent;
 
     public void TogglePanel(GameObject panel) {
         if (panel.activeInHierarchy)
@@ -19,12 +21,12 @@ public class StudentListPopUp : MonoBehaviour {
             foreach (var student in callback) {
                 Student.Students.Add(student);
                 PropertyInfo[] info = student.GetType().GetProperties();
-                Instantiate(studentContainerPrefab, GameObject.Find("Grid").transform);
-                InputField[] inputs = studentContainerPrefab.GetComponentsInChildren<InputField>();
+                Instantiate(StudentListPrefab, StudentPrefabParent.transform);
+                Text[] inputs = StudentListPrefab.GetComponentsInChildren<Text>();
                 inputs[0].text = info[(int)StudentProperties.Name].GetValue(student, null).ToString();
                 inputs[1].text = info[(int)StudentProperties.Pincode].GetValue(student, null).ToString();
-                inputs[2].text = info[(int)StudentProperties.Name].GetValue(student, null).ToString();
-                inputs[3].text = info[(int)StudentProperties.Id].GetValue(student, null).ToString();
+                inputs[2].text = info[(int)StudentProperties.Id].GetValue(student, null).ToString();
+                inputs[3].text = info[(int)StudentProperties.Name].GetValue(student, null).ToString();
             }
         }, isTeacher: false);
     }
@@ -32,11 +34,13 @@ public class StudentListPopUp : MonoBehaviour {
     private void Update() {
         foreach (var student in Student.Students) {
             PropertyInfo[] info = student.GetType().GetProperties();
-            InputField[] inputs = studentContainerPrefab.GetComponentsInChildren<InputField>();
+            Text[] inputs = StudentListPrefab.GetComponentsInChildren<Text>();
+            Debug.Log(info[(int)StudentProperties.Name].GetValue(student, null).ToString() + ", " + info[(int)StudentProperties.Pincode].GetValue(student, null).ToString());
             inputs[0].text = info[(int)StudentProperties.Name].GetValue(student, null).ToString();
             inputs[1].text = info[(int)StudentProperties.Pincode].GetValue(student, null).ToString();
-            inputs[2].text = info[(int)StudentProperties.Name].GetValue(student, null).ToString();
-            inputs[3].text = info[(int)StudentProperties.Id].GetValue(student, null).ToString();
+            inputs[2].text = info[(int)StudentProperties.Id].GetValue(student, null).ToString();
+            inputs[3].text = info[(int)StudentProperties.Name].GetValue(student, null).ToString();
+            Debug.Log(inputs[0].text);
         }
     }
 }
