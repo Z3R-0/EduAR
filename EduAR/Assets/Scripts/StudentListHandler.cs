@@ -22,11 +22,12 @@ public class StudentListHandler : MonoBehaviour {
                 Student.Students.Add(student);
                 PropertyInfo[] info = student.GetType().GetProperties();
                 Instantiate(StudentListPrefab, StudentPrefabParent.transform);
-                Text[] inputs = StudentListPrefab.GetComponentsInChildren<Text>();
+                Text[] texts = StudentListPrefab.GetComponentsInChildren<Text>();
+                InputField[] inputs = StudentListPrefab.GetComponentsInChildren<InputField>();
                 inputs[0].text = info[(int)StudentProperties.Name].GetValue(student, null).ToString();
                 inputs[1].text = info[(int)StudentProperties.Pincode].GetValue(student, null).ToString();
-                inputs[2].text = info[(int)StudentProperties.Id].GetValue(student, null).ToString();
-                inputs[3].text = info[(int)StudentProperties.Name].GetValue(student, null).ToString();
+                texts[2].text = info[(int)StudentProperties.Id].GetValue(student, null).ToString();
+                texts[3].text = info[(int)StudentProperties.Name].GetValue(student, null).ToString();
             }
         }, isTeacher: false);
     }
@@ -34,13 +35,12 @@ public class StudentListHandler : MonoBehaviour {
     private void Update() {
         foreach (var student in Student.Students) {
             PropertyInfo[] info = student.GetType().GetProperties();
-            Text[] inputs = StudentListPrefab.GetComponentsInChildren<Text>();
-            Debug.Log(info[(int)StudentProperties.Name].GetValue(student, null).ToString() + ", " + info[(int)StudentProperties.Pincode].GetValue(student, null).ToString());
+            Text[] texts = StudentListPrefab.GetComponentsInChildren<Text>();
+            InputField[] inputs = StudentListPrefab.GetComponentsInChildren<InputField>();
             inputs[0].text = info[(int)StudentProperties.Name].GetValue(student, null).ToString();
             inputs[1].text = info[(int)StudentProperties.Pincode].GetValue(student, null).ToString();
-            inputs[2].text = info[(int)StudentProperties.Id].GetValue(student, null).ToString();
-            inputs[3].text = info[(int)StudentProperties.Name].GetValue(student, null).ToString();
-            Debug.Log(inputs[0].text);
+            texts[2].text = info[(int)StudentProperties.Id].GetValue(student, null).ToString();
+            texts[3].text = info[(int)StudentProperties.Name].GetValue(student, null).ToString();
         }
     }
 }
