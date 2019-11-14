@@ -95,10 +95,26 @@ class RequestHandler
 
 	public function createOrUpdate($query, $type = null)
 	{
-		if($this->conn->exec($query) === false) {
-			return "Error occurred while trying to execute query";
+		$queries = explode(";", $query);
+
+		if(count($queries) > 1 && !empty($queries[1])) {
+			try {
+				$this->conn->beginTransaction();
+				foreach ($queries as $query) {
+					$this->conn->query($query . ";");
+				}
+				$this->conn->commit();
+				return $this->conn->lastInsertId();
+			} catch(\Exception $e) {
+				$this->conn->rollBack();
+				return $e->getMessage() . "\r\n" . $e->getTraceAsString();
+			}
 		} else {
-			return $this->conn->lastInsertId();
+			if($this->conn->exec($queries[0]) === false) {
+				return "Error occurred while trying to execute query";
+			} else {
+				return $this->conn->lastInsertId();
+			}
 		}
 	}
 
