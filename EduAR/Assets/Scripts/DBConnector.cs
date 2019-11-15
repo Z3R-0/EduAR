@@ -96,8 +96,8 @@ public class DBConnector : MonoBehaviour {
     /// Gets data from the database from either the Teacher or Student table. 
     /// Setting the email or name parameters gets data from a specific teacher or student.
     /// </summary>
-    public static Coroutine GetUserData(Action<IList> callback, bool isTeacher = true, string teacherEmail = null, string studentName = null) {
-        return Instance.StartCoroutine(GetUser(callback, isTeacher, teacherEmail, studentName));
+    public static Coroutine GetUserData(Action<IList> callback, bool isTeacher = true, string teacherEmail = null, string studentName = null, int? class_ID = null) {
+        return Instance.StartCoroutine(GetUser(callback, isTeacher, teacherEmail, studentName, class_ID));
     }
 
     public static Coroutine GetScenarioData(Action<IList> callback, int? id = null, string name = null, int? classID = null, StoryType? storytype = null, int? available = null) {
@@ -136,7 +136,7 @@ public class DBConnector : MonoBehaviour {
         return Instance.StartCoroutine(CreateTeacher(successful, name, email, password, classID));
     }
 
-    public static Coroutine CreateStudentFunc(Action<bool> successful, string name, int pincode, int classID) {
+    public static Coroutine CreateStudentFunc(Action<bool> successful, string name, string pincode, int classID) {
         return Instance.StartCoroutine(CreateStudent(successful, name, pincode, classID));
     }
 
@@ -169,15 +169,19 @@ public class DBConnector : MonoBehaviour {
     #region Database Getters
 
     // See comments above function GetUserData for info
-    private static IEnumerator GetUser(Action<IList> callback, bool isTeacher = true, string teacherEmail = null, string studentName = null) {
+    private static IEnumerator GetUser(Action<IList> callback, bool isTeacher = true, string teacherEmail = null, string studentName = null, int? class_ID = null) {
         query = "type=User&method=get&query=";
 
         if (isTeacher && teacherEmail != null)
             query += "SELECT * FROM teacher WHERE email = '" + teacherEmail + "';";
+        else if (isTeacher && class_ID != null)
+            query += "SELECT * FROM teacher WHERE class_id = " + class_ID + ";";
         else if (isTeacher)
             query += "SELECT * FROM teacher;";
         else if (studentName != null)
             query += "SELECT * FROM student WHERE name = '" + studentName + "';";
+        else if (class_ID != null)
+            query += "SELECT * FROM student WHERE class_id = " + class_ID + ";";
         else
             query += "SELECT * FROM student;";
 
@@ -334,7 +338,7 @@ public class DBConnector : MonoBehaviour {
         }
     }
 
-    private static IEnumerator CreateStudent(Action<bool> successful, string name, int pincode, int classID) {
+    private static IEnumerator CreateStudent(Action<bool> successful, string name, string pincode, int classID) {
         query = "type=User&method=create&query=INSERT INTO student " +
                 "(name,pincode,class_id) " +
                 "values('" + name + "'," + pincode + "," + classID + ");";

@@ -94,7 +94,7 @@ public class UITranslator : MonoBehaviour {
             } else {
                 Debug.LogError("Something went wrong, read error above for more info");
             }
-        }, (string)info[addStudentStrings[0]], (int)info[addStudentStrings[1]], (int)info[addStudentStrings[2]]);
+        }, (string)info[addStudentStrings[0]], (string)info[addStudentStrings[1]], (int)info[addStudentStrings[2]]);
     }
 
     //private Dictionary<string, object> GetScenarioCreationValues() {
@@ -116,7 +116,7 @@ public class UITranslator : MonoBehaviour {
         Dictionary<string, object> result = new Dictionary<string, object>();
 
         result.Add("name", studentNameInputField.text);
-        result.Add("pincode", int.Parse(studentPincodeInputField.text));
+        result.Add("pincode", studentPincodeInputField.text);
         result.Add("class_id", Teacher.currentTeacher.Class_ID);
 
         return result;
