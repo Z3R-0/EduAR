@@ -28,6 +28,8 @@ public class ScenarioListHandler : MonoBehaviour {
             PropertyInfo[] info = scenario.GetType().GetProperties();
             Text[] texts = ScenarioListPrefab.GetComponentsInChildren<Text>();
             texts[0].text = info[(int)StudentProperties.Name].GetValue(scenario, null).ToString();
+            Debug.Log("Text name: " + texts[0].text);
+            Debug.Log("Scenario name: " + ((Scenario)scenario).Name);
             texts[1].text = info[(int)StudentProperties.Id].GetValue(scenario, null).ToString();
         }
     }

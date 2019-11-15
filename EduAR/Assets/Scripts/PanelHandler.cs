@@ -16,7 +16,6 @@ public enum PopUp {
 }
 
 public class PanelHandler : MonoBehaviour {
-
     // Serialize the panels for use in code
     [SerializeField]
     private List<GameObject> panels = new List<GameObject>();
