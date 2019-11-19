@@ -169,7 +169,7 @@ public class DBConnector : MonoBehaviour {
     #region Database Getters
 
     // See comments above function GetUserData for info
-    private static IEnumerator GetUser(Action<IList> callback, bool isTeacher = true, string teacherEmail = null, string studentName = null, int? class_ID = null) {
+    private static IEnumerator GetUser(Action<IList> callback, bool isTeacher = true, string teacherEmail = null, string studentName = null, int? studentPin = null, int? class_ID = null) {
         query = "type=User&method=get&query=";
 
         if (isTeacher && teacherEmail != null)
@@ -178,8 +178,8 @@ public class DBConnector : MonoBehaviour {
             query += "SELECT * FROM teacher WHERE class_id = " + class_ID + ";";
         else if (isTeacher)
             query += "SELECT * FROM teacher;";
-        else if (studentName != null)
-            query += "SELECT * FROM student WHERE name = '" + studentName + "';";
+        else if (studentName != null && studentPin != null)
+            query += "SELECT * FROM student WHERE name = '" + studentName + "' AND pincode = " + studentPin + ";";
         else if (class_ID != null)
             query += "SELECT * FROM student WHERE class_id = " + class_ID + ";";
         else
