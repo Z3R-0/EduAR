@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -19,8 +18,6 @@ public class UITranslator : MonoBehaviour {
     private InputField studentNameInputField;
     [SerializeField]
     private InputField studentPincodeInputField;
-    [SerializeField]
-    private Text hiddenStudentIdField;
     [SerializeField]
     private GameObject FigureListPrefab;
     [SerializeField]
@@ -142,7 +139,7 @@ public class UITranslator : MonoBehaviour {
         propertiesPanels.Add(newPanel, newPanel.GetComponent<FigurePanel>());
     }
     
-    public void AddQuestion(Transform parentFigurePanel) {
+    public void AddQuestion() {
         figurePanelRef.InstantiateQuestion();
     }
 

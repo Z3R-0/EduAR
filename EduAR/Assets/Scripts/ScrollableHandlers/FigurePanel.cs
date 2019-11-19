@@ -13,6 +13,8 @@ public class FigurePanel : MonoBehaviour {
     private GameObject figurePropertiesParent;
     [SerializeField]
     private GameObject questionsPrefabParent;
+    [SerializeField]
+    private GameObject resetPanel;
 
     public Dropdown task { get; set; }
     public Text informationFile { get; set; }
@@ -23,12 +25,22 @@ public class FigurePanel : MonoBehaviour {
         return Instantiate(figurePropertiesPanelPrefab, figurePropertiesParent.transform);
     }
 
+    public void resetQnA() {
+        if (this.gameObject.name != "MainCanvas") {
+            resetPanel.SetActive(false);
+            resetPanel.SetActive(true);
+        }
+    } 
+
     public void InstantiateQuestion() {
-        Instantiate(questionsPanelPrefab, questionsPrefabParent.transform);
+        GameObject question = Instantiate(questionsPanelPrefab, questionsPrefabParent.transform);
+        InstantiateAnswer(question.transform);
+        Invoke(nameof(FigurePanel.resetQnA), 0.02f);
     }
 
     public void InstantiateAnswer(Transform parentQuestion) {
         Instantiate(answersPanelPrefab, parentQuestion);
+        Invoke(nameof(FigurePanel.resetQnA), 0.02f);
     }
 
     public FigurePanel UpdateParameters(FigurePanel panel) {

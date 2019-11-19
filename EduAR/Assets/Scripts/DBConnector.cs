@@ -30,6 +30,8 @@ public class DBConnector : MonoBehaviour {
     private PanelHandler panelHandler;
     private UITranslator translator;
 
+    public static GameObject MainCanvas;
+
     // Variables needed to get output from database
     private static DBConnector m_Instance = null;
 
@@ -49,6 +51,8 @@ public class DBConnector : MonoBehaviour {
     }
 
     private void Awake() {
+        MainCanvas = GameObject.Find("MainCanvas");
+
         SHA256 mySHA256 = SHA256Managed.Create();
         key = mySHA256.ComputeHash(Encoding.ASCII.GetBytes(secretSalt));
 
@@ -58,34 +62,15 @@ public class DBConnector : MonoBehaviour {
 
     private void Start() {
         // initialize panel handler
-        panelHandler = GameObject.Find("MainCanvas").GetComponent<PanelHandler>();
-        translator = GameObject.Find("MainCanvas").GetComponent<UITranslator>();
+        panelHandler = MainCanvas.GetComponent<PanelHandler>();
+        translator = MainCanvas.GetComponent<UITranslator>();
+        ErrorBufferGO = GameObject.Find("ErrorBuffer");
+
 
         // initialize static list of all students within class
         Student.Students = new List<object>();
         Scenario.Scenarios = new List<object>();
         translator.LoadFigureList();
-
-        // -------TESTING PURPOSES-------
-        // Currently used for testing, this is the format to use when asking for data from the database
-        // Replace GetUserData with the function that gives the needed info and read it using info[(int) enum PropertyName]
-        // The PropertyName enum is found in each database class
-
-        //CreateClassFunc((successful) => {
-        //    if (successful)
-        //        Debug.Log("Created a new class");
-        //}, "ICTGS", "Game Studio");
-        //DBConnector.GetClassData((callback) => {
-        //    foreach (var classObj in callback) {
-        //        PropertyInfo[] info = classObj.GetType().GetProperties();
-        //        Debug.Log("Class ID: " + info[(int)ClassProperties.Id].GetValue(classObj, null));
-        //        Debug.Log("Class code: " + info[(int)ClassProperties.ClassCode].GetValue(classObj, null));
-        //        Debug.Log("Class name: " + info[(int)ClassProperties.Name].GetValue(classObj, null));
-        //    }
-        //});
-
-        // -------END OF TESTING PURPOSES-------
-        ErrorBufferGO = GameObject.Find("ErrorBuffer");
     }
 
     #region Database Interface Getter Functions

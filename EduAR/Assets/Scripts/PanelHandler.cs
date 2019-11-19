@@ -33,7 +33,7 @@ public class PanelHandler : MonoBehaviour {
         for (int i = 0; i < popupsList.Count; i++) {
             popups.Add((PopUp)i, popupsList[i]);
         }
-        translator = GameObject.Find("MainCanvas").GetComponent<UITranslator>();
+        translator = DBConnector.MainCanvas.GetComponent<UITranslator>();
         ConfirmLogIn();
     }
     
