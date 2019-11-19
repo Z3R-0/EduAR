@@ -11,6 +11,7 @@ public class ChangeStudentInfo : MonoBehaviour {
     }
 
     public void ChangeStudentInfoFunc(InputField field) {
+        studentErrorBuffer.text = "";
         foreach (object student in Student.Students) {
             PropertyInfo[] info = student.GetType().GetProperties();
             InputField[] inputs = field.transform.parent.GetComponentsInChildren<InputField>();
@@ -26,7 +27,8 @@ public class ChangeStudentInfo : MonoBehaviour {
 
                 DBConnector.UpdateStudentFunc((successful) => {
                     info[(int)StudentProperties.Name].SetValue(student, inputs[0].text);
-                    studentErrorBuffer.text = "";
+                    studentErrorBuffer.color = Color.green;
+                    studentErrorBuffer.text = "Student succesvol aangepast";
                 }, studentId, inputs[0].text, int.Parse(inputs[1].text), classID);
             }
         }
