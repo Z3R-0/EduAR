@@ -39,7 +39,8 @@ public class FigurePanel : MonoBehaviour {
     }
 
     public void InstantiateAnswer(Transform parentQuestion) {
-        Instantiate(answersPanelPrefab, parentQuestion);
+        GameObject answer = Instantiate(answersPanelPrefab, parentQuestion);
+        parentQuestion.GetComponent<QuestionListHandler>().AddToggle(answer);
         Invoke(nameof(FigurePanel.resetQnA), 0.02f);
     }
 
