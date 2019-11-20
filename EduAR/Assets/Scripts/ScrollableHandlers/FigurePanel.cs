@@ -30,21 +30,27 @@ public class FigurePanel : MonoBehaviour {
             resetPanel.SetActive(false);
             resetPanel.SetActive(true);
         }
-    } 
+    }
 
-    public void InstantiateQuestion() {
+    public void InstantiateQuestion(string text = null) {
         GameObject question = Instantiate(questionsPanelPrefab, questionsPrefabParent.transform);
-        InstantiateAnswer(question.transform);
+        if (text != null)
+            question.GetComponent<InputField>().text = text;
+        else
+            InstantiateAnswer(question.transform);
         Invoke(nameof(FigurePanel.resetQnA), 0.02f);
     }
 
-    public void InstantiateAnswer(Transform parentQuestion) {
+    public void InstantiateAnswer(Transform parentQuestion, string text = null) {
         GameObject answer = Instantiate(answersPanelPrefab, parentQuestion);
+        if (text != null)
+            answer.GetComponent<InputField>().text = text;
         parentQuestion.GetComponent<QuestionListHandler>().AddToggle(answer);
         Invoke(nameof(FigurePanel.resetQnA), 0.02f);
     }
 
     public FigurePanel UpdateParameters(FigurePanel panel) {
+        questionsAndAnswers.Clear();
         Dictionary<InputField, bool> answers = new Dictionary<InputField, bool>();
 
         panel.task = panel.GetComponent<Dropdown>();
@@ -52,9 +58,9 @@ public class FigurePanel : MonoBehaviour {
             if (go.tag == "Information")
                 panel.informationFile = go.GetComponent<Text>();
         }
-        
-        foreach(Transform question in questionsPrefabParent.transform) {
-            foreach(Transform answer in question) {
+
+        foreach (Transform question in questionsPrefabParent.transform) {
+            foreach (Transform answer in question) {
                 if (answer.gameObject.tag == "Answer")
                     answers.Add(answer.GetComponent<InputField>(), answer.GetComponentInChildren<Toggle>().isOn);
             }

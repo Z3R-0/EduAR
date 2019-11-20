@@ -172,6 +172,11 @@ public class UITranslator : MonoBehaviour {
 
         for (int i = 0; i <= Scenario.CurrentScenarioFigures.Count - 1; i++) {
             DBConnector.SaveScenarioContentFunc((successful) => {
+                if (hiddenScenarioIdField.text == "") {
+                    DBConnector.GetMaxScenarioIdFunc((callback) => {
+                        hiddenScenarioIdField.text = (callback - 1).ToString();
+                    });
+                }
             }, scenarioQnA[i], scenarioNameInputField.text, available, Teacher.currentTeacher.Class_ID, (StoryType)scenarioStoryTypeDropDown.value, hiddenId);
         }
     }
@@ -215,7 +220,7 @@ public class UITranslator : MonoBehaviour {
 
     public void LoadScenarioDetails(Text hiddenScenarioId) {
         hiddenScenarioIdField.text = hiddenScenarioId.text;
-        Debug.Log("HiddenId = " + hiddenScenarioId.ToString());
+        Debug.Log("HiddenId = " + hiddenScenarioId.text.ToString());
         if (hiddenScenarioId.text == "" || hiddenScenarioId == null) {
             scenarioAvailableToggle.isOn = true;
             scenarioNameInputField.text = "";
@@ -231,10 +236,52 @@ public class UITranslator : MonoBehaviour {
             if (temp != null) {
                 if (temp.Available == 0)
                     scenarioAvailableToggle.isOn = false;
-                else
-                    scenarioAvailableToggle.isOn = true;
                 scenarioNameInputField.text = temp.Name;
                 scenarioStoryTypeDropDown.value = (int)temp.StoryType;
+                DBConnector.GetScenarioFigureData((callback) => {
+
+                    Dictionary<ScenarioQuestion, List<ScenarioAnswer>> QuestionsAndAnswers = new Dictionary<ScenarioQuestion, List<ScenarioAnswer>>();
+                    foreach (object figure in callback) {
+                        PropertyInfo[] info = figure.GetType().GetProperties();
+                        Debug.Log(info);
+                        AddFigure(info[(int)ScenarioFigureProperties.Figure_Id].GetValue(figure, null).ToString());
+
+                        DBConnector.GetQuestionData((questionCallback) => {
+                            foreach (object question in questionCallback) {
+                                PropertyInfo[] questionInfo = question.GetType().GetProperties();
+                                ScenarioQuestion tempQuestion = new ScenarioQuestion(questionInfo[(int)QuestionProperties.Question_Text].GetValue(question, null).ToString()) {
+                                    Scenario_Figure_Id = int.Parse(questionInfo[(int)QuestionProperties.Scenario_Figure_Id].GetValue(question, null).ToString())
+                                };
+
+                                DBConnector.GetAnswerData((answerCallback) => {
+                                    List<ScenarioAnswer> answers = new List<ScenarioAnswer>();
+                                    foreach (object answer in questionCallback) {
+                                        PropertyInfo[] answerInfo = answer.GetType().GetProperties();
+                                        ScenarioAnswer tempAnswer = new ScenarioAnswer(answerInfo[(int)AnswerProperties.Text].GetValue(answer, null).ToString(), int.Parse(answerInfo[(int)AnswerProperties.Correct_Answer].GetValue(answer, null).ToString()));
+                                        answers.Add(tempAnswer);
+                                    }
+                                    QuestionsAndAnswers.Add(tempQuestion, answers);
+                                }, scenario_question_id: int.Parse(questionInfo[(int)QuestionProperties.Id].GetValue(question, null).ToString()));
+                            }
+                        }, int.Parse(info[(int)ScenarioFigureProperties.Figure_Id].GetValue(figure, null).ToString()));
+                    }
+
+                    GameObject[] figures = GameObject.FindGameObjectsWithTag("Figure");
+                    for (int i = 0; i < figures.Length; i++) {
+                        foreach (var questionAnswersPair in QuestionsAndAnswers) {
+                            figures[i].GetComponent<FigurePanel>().InstantiateQuestion(questionAnswersPair.Key.Question_Text);
+                        }
+                    }
+
+                    GameObject[] questions = GameObject.FindGameObjectsWithTag("Question");
+                    for (int i = 0; i < questions.Length; i++) {
+                        foreach(var questionAnswersPair in QuestionsAndAnswers) {
+                            foreach(var answer in questionAnswersPair.Value) {
+                                questions[i].transform.parent.parent.parent.GetComponent<FigurePanel>().InstantiateAnswer(questions[i].transform, answer.Answer_Text);
+                            }
+                        }
+                    }
+                }, scenario_id: int.Parse(hiddenScenarioId.text));
             } else {
                 Debug.LogError("Something went wrong while trying to load scenario details of scenario id: " + hiddenScenarioIdField.text);
             }

@@ -1,4 +1,9 @@
-﻿public class ScenarioFigure {
+﻿public enum ScenarioFigureProperties {
+    Scenario_Id,
+    Figure_Id
+}
+
+public class ScenarioFigure {
 
     public int Scenario_Id { get; set; }
     public int Figure_Id { get; set; }

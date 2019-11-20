@@ -8,7 +8,7 @@ public class AnswerListHandler : MonoBehaviour {
     private void Start() {
         figurePanel = DBConnector.MainCanvas.GetComponent<FigurePanel>();
         question = transform.parent.GetComponent<QuestionListHandler>();
-        resetPanel = transform.parent.transform.parent.transform.parent;
+        resetPanel = transform.parent.parent.parent;
     }
 
     public void AddORemoveAnswer(bool isAdd) {
