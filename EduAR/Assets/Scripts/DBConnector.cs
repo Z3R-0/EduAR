@@ -22,9 +22,10 @@ public class DBConnector : MonoBehaviour {
     private static byte[] key;
     private static byte[] iv;
 
-    private static bool noConnection = false;
     private static List<long> responseCodes = new List<long>(new long[] { 400, 401, 403, 404, 408 });
     private int logInAttempts = 0;
+    private static int WebRequestAttempts = 0;
+    private static int MaxWebRequestAttempts = 20;
 
     private GameObject ErrorBufferGO;
     private PanelHandler panelHandler;
@@ -81,24 +82,28 @@ public class DBConnector : MonoBehaviour {
     /// Gets data from the database from either the Teacher or Student table. 
     /// Setting the email or name parameters gets data from a specific teacher or student.
     /// </summary>
-    public static Coroutine GetUserData(Action<IList> callback, bool isTeacher = true, string teacherEmail = null, string studentName = null, int? class_ID = null) {
-        return Instance.StartCoroutine(GetUser(callback, isTeacher, teacherEmail, studentName, class_ID));
+    public static Coroutine GetUserData(Action<IList> callback, bool isTeacher = true, string teacherEmail = null, string studentName = null, int? studentPin = null, int? class_ID = null) {
+        return Instance.StartCoroutine(GetUser(callback, isTeacher, teacherEmail, studentName, studentPin, class_ID));
     }
 
     public static Coroutine GetScenarioData(Action<IList> callback, int? id = null, string name = null, int? classID = null, StoryType? storytype = null, int? available = null) {
         return Instance.StartCoroutine(GetScenario(callback, id, name, classID, storytype, available));
     }
 
-    public static Coroutine GetFigureData(Action<IList> callback, int? id = null, string name = null, Task? task = null) {
-        return Instance.StartCoroutine(GetFigure(callback, id, name, task));
+    public static Coroutine GetFigureData(Action<IList> callback, int? id = null, string name = null) {
+        return Instance.StartCoroutine(GetFigure(callback, id, name));
     }
 
-    public static Coroutine GetQuestionData(Action<IList> callback, int? id = null) {
-        return Instance.StartCoroutine(GetQuestion(callback, id));
+    public static Coroutine GetScenarioFigureData(Action<IList> callback, int? id = null, int? scenario_id = null, int? figure_id = null) {
+        return Instance.StartCoroutine(GetScenarioFigure(callback, id, scenario_id, figure_id));
     }
 
-    public static Coroutine GetAnswerData(Action<IList> callback, int? id = null) {
-        return Instance.StartCoroutine(GetAnswer(callback, id));
+    public static Coroutine GetQuestionData(Action<IList> callback, int? id = null, int? scenario_figure_id = null) {
+        return Instance.StartCoroutine(GetQuestion(callback, id, scenario_figure_id));
+    }
+
+    public static Coroutine GetAnswerData(Action<IList> callback, int? id = null, int? scenario_question_id = null) {
+        return Instance.StartCoroutine(GetAnswer(callback, id, scenario_question_id));
     }
 
     public static Coroutine GetClassData(Action<IList> callback, int? id = null, string classCode = null, string name = null) {
@@ -176,9 +181,12 @@ public class DBConnector : MonoBehaviour {
 
         if (info_get.isNetworkError || info_get.isHttpError) {
             Debug.LogError("Error ocurred: " + info_get.error);
-            if (responseCodes.Contains(info_get.responseCode))
-                noConnection = true;
+            if (responseCodes.Contains(info_get.responseCode) && WebRequestAttempts <= MaxWebRequestAttempts) {
+                ++WebRequestAttempts;
+                GetUserData(callback, isTeacher, teacherEmail, studentName, studentPin, class_ID);
+            }
         } else {
+            WebRequestAttempts = 0;
             // See Decoder function for info on workings
             if (isTeacher)
                 callback(JSONDecoder(info_get.downloadHandler.text, typeof(Teacher).Name));
@@ -208,21 +216,24 @@ public class DBConnector : MonoBehaviour {
 
         if (scenario_get.isNetworkError || scenario_get.isHttpError) {
             Debug.LogError("Error occurred: " + scenario_get.error);
+            if (responseCodes.Contains(scenario_get.responseCode) && WebRequestAttempts <= MaxWebRequestAttempts) {
+                ++WebRequestAttempts;
+                GetScenarioData(callback, id, name, classID, storytype, available);
+            }
         } else {
+            WebRequestAttempts = 0;
             // See Decoder function info on workings
             callback(JSONDecoder(scenario_get.downloadHandler.text, typeof(Scenario).Name));
         }
     }
 
-    private static IEnumerator GetFigure(Action<IList> callback, int? id = null, string name = null, Task? task = null) {
+    private static IEnumerator GetFigure(Action<IList> callback, int? id = null, string name = null) {
         query = "type=Figure&method=get&query=";
 
         if (id != null)
             query += "SELECT * FROM figure WHERE id = " + id + ";";
         else if (name != null)
             query += "SELECT * FROM figure WHERE name LIKE '%" + name + "%';";
-        else if (task != null)
-            query += "SELECT * FROM figure WHERE task LIKE '%" + task.ToString() + "%';";
         else
             query += "SELECT * FROM figure";
 
@@ -232,19 +243,55 @@ public class DBConnector : MonoBehaviour {
 
         if (figure_get.isNetworkError || figure_get.isHttpError) {
             Debug.LogError("Error occurred: " + figure_get.error);
+            if (responseCodes.Contains(figure_get.responseCode) && WebRequestAttempts <= MaxWebRequestAttempts) {
+                ++WebRequestAttempts;
+                GetFigureData(callback, id, name);
+            }
         } else {
+            WebRequestAttempts = 0;
             // See Decoder function for info on workings
             callback(JSONDecoder(figure_get.downloadHandler.text, typeof(Figure).Name));
         }
     }
 
-    private static IEnumerator GetQuestion(Action<IList> callback, int? id = null) {
+    private static IEnumerator GetScenarioFigure(Action<IList> callback, int? id = null, int? scenario_id = null, int? figure_id = null) {
+        query = "type=Figure&method=get&query=";
+
+        if (id != null)
+            query += "SELECT * FROM scenario_figure WHERE id = " + id + ";";
+        else if (scenario_id != null)
+            query += "SELECT * FROM scenario_figure WHERE scenario_id = " + scenario_id + ";";
+        else if (figure_id != null)
+            query += "SELECT * FROM scenario_figure WHERE figure_id = " + figure_id + ";";
+        else
+            query += "SELECT * FROM scenario_figure";
+
+        string encryptedQuery = "&key=" + EncryptString(query, key, iv);
+        UnityWebRequest scenario_figure_get = UnityWebRequest.Get(dbUrl + query + encryptedQuery);
+        yield return scenario_figure_get.SendWebRequest();
+
+        if (scenario_figure_get.isNetworkError || scenario_figure_get.isHttpError) {
+            Debug.LogError("Error occurred: " + scenario_figure_get.error);
+            if (responseCodes.Contains(scenario_figure_get.responseCode) && WebRequestAttempts <= MaxWebRequestAttempts) {
+                ++WebRequestAttempts;
+                GetScenarioFigureData(callback, id, scenario_id, figure_id);
+            }
+        } else {
+            WebRequestAttempts = 0;
+            // See Decoder function for info on workings
+            callback(JSONDecoder(scenario_figure_get.downloadHandler.text, typeof(Figure).Name));
+        }
+    }
+
+    private static IEnumerator GetQuestion(Action<IList> callback, int? id = null, int? scenario_figure_id = null) {
         query = "type=Question&method=get&query=";
 
         if (id != null)
-            query += "SELECT * FROM question WHERE id = " + id + ";";
+            query += "SELECT * FROM scenario_question WHERE id = " + id + ";";
+        else if (scenario_figure_id != null)
+            query += "SELECT * FROM scenario_question WHERE scenario_figure_id = " + scenario_figure_id + ";";
         else
-            query += "SELECT * FROM question;";
+            query += "SELECT * FROM scenario_question;";
 
         string encryptedQuery = "&key=" + EncryptString(query, key, iv);
         UnityWebRequest question_get = UnityWebRequest.Get(dbUrl + query + encryptedQuery);
@@ -252,29 +299,41 @@ public class DBConnector : MonoBehaviour {
 
         if (question_get.isNetworkError || question_get.isHttpError) {
             Debug.LogError("Error occurred: " + question_get.error);
+            if (responseCodes.Contains(question_get.responseCode) && WebRequestAttempts <= MaxWebRequestAttempts) {
+                ++WebRequestAttempts;
+                GetQuestionData(callback, id, scenario_figure_id);
+            }
         } else {
+            WebRequestAttempts = 0;
             // See Decoder function for info on workings
             callback(JSONDecoder(question_get.downloadHandler.text, typeof(Figure).Name));
         }
     }
 
-    private static IEnumerator GetAnswer(Action<IList> callback, int? id = null) {
+    private static IEnumerator GetAnswer(Action<IList> callback, int? id = null, int? scenario_question_id = null) {
         query = "type=Answer&method=get&query=";
 
         if (id != null)
-            query += "SELECT * FROM answer WHERE id = " + id + ";";
+            query += "SELECT * FROM scenario_answer WHERE id = " + id + ";";
+        else if (scenario_question_id != null)
+            query += "SELECT * FROM scenario_answer WHERE scenario_question_id = " + scenario_question_id + ";";
         else
-            query += "SELECT * FROM answer;";
+            query += "SELECT * FROM scenario_answer;";
 
         string encryptedQuery = "&key=" + EncryptString(query, key, iv);
-        UnityWebRequest question_get = UnityWebRequest.Get(dbUrl + query + encryptedQuery);
-        yield return question_get.SendWebRequest();
+        UnityWebRequest answer_get = UnityWebRequest.Get(dbUrl + query + encryptedQuery);
+        yield return answer_get.SendWebRequest();
 
-        if (question_get.isNetworkError || question_get.isHttpError) {
-            Debug.LogError("Error occurred: " + question_get.error);
+        if (answer_get.isNetworkError || answer_get.isHttpError) {
+            Debug.LogError("Error occurred: " + answer_get.error);
+            if (responseCodes.Contains(answer_get.responseCode) && WebRequestAttempts <= MaxWebRequestAttempts) {
+                ++WebRequestAttempts;
+                GetAnswerData(callback, id, scenario_question_id);
+            }
         } else {
+            WebRequestAttempts = 0;
             // See Decoder function for info on workings
-            callback(JSONDecoder(question_get.downloadHandler.text, typeof(ScenarioAnswer).Name));
+            callback(JSONDecoder(answer_get.downloadHandler.text, typeof(ScenarioAnswer).Name));
         }
     }
 
@@ -296,7 +355,12 @@ public class DBConnector : MonoBehaviour {
 
         if (class_get.isNetworkError || class_get.isHttpError) {
             Debug.LogError("Error occurred: " + class_get.error);
+            if (responseCodes.Contains(class_get.responseCode) && WebRequestAttempts <= MaxWebRequestAttempts) {
+                ++WebRequestAttempts;
+                GetClassData(callback, id, classCode, name);
+            }
         } else {
+            WebRequestAttempts = 0;
             // See Decoder function for info on workings
             callback(JSONDecoder(class_get.downloadHandler.text, typeof(Class).Name));
         }
@@ -317,8 +381,13 @@ public class DBConnector : MonoBehaviour {
 
         if (teacher_create.isNetworkError || teacher_create.isHttpError) {
             Debug.LogError("Error occurred: " + teacher_create.error);
-            successful(false);
+            if (responseCodes.Contains(teacher_create.responseCode) && WebRequestAttempts <= MaxWebRequestAttempts) {
+                ++WebRequestAttempts;
+                CreateTeacherFunc(successful, name, email, password, classID);
+            } else
+                successful(false);
         } else {
+            WebRequestAttempts = 0;
             successful(true);
         }
     }
@@ -334,8 +403,13 @@ public class DBConnector : MonoBehaviour {
 
         if (student_create.isNetworkError || student_create.isHttpError) {
             Debug.LogError("Error occurred: " + student_create.error);
-            successful(false);
+            if (responseCodes.Contains(student_create.responseCode) && WebRequestAttempts <= MaxWebRequestAttempts) {
+                ++WebRequestAttempts;
+                CreateStudentFunc(successful, name, pincode, classID);
+            } else
+                successful(false);
         } else {
+            WebRequestAttempts = 0;
             successful(true);
         }
     }
@@ -351,8 +425,13 @@ public class DBConnector : MonoBehaviour {
 
         if (class_create.isNetworkError || class_create.isHttpError) {
             Debug.LogError("Error occurred: " + class_create.error);
-            successful(false);
+            if (responseCodes.Contains(class_create.responseCode) && WebRequestAttempts <= MaxWebRequestAttempts) {
+                ++WebRequestAttempts;
+                CreateClassFunc(successful, classCode, name);
+            } else
+                successful(false);
         } else {
+            WebRequestAttempts = 0;
             successful(true);
         }
     }
@@ -372,8 +451,13 @@ public class DBConnector : MonoBehaviour {
 
         if (student_update.isNetworkError || student_update.isHttpError) {
             Debug.LogError("Error occurred: " + student_update.error);
-            successful(false);
+            if (responseCodes.Contains(student_update.responseCode) && WebRequestAttempts <= MaxWebRequestAttempts) {
+                ++WebRequestAttempts;
+                UpdateStudentFunc(successful, id, name, pincode, classID);
+            } else
+                successful(false);
         } else {
+            WebRequestAttempts = 0;
             successful(true);
         }
     }
@@ -396,38 +480,50 @@ public class DBConnector : MonoBehaviour {
 
         if (scenario_updateOrCreate.isNetworkError || scenario_updateOrCreate.isHttpError) {
             Debug.LogError("Error occurred: " + scenario_updateOrCreate.error);
+            if (responseCodes.Contains(scenario_updateOrCreate.responseCode) && WebRequestAttempts <= MaxWebRequestAttempts) {
+                ++WebRequestAttempts;
+                SaveScenarioFunc(callback, name, available, classID, storytype, id);
+            }
         } else {
+            WebRequestAttempts = 0;
             callback(int.Parse(Regex.Replace(scenario_updateOrCreate.downloadHandler.text, "[^0-9]+", string.Empty)));
         }
     }
 
     private static IEnumerator SaveScenarioContent(Action<bool> successful, Dictionary<ScenarioQuestion, List<ScenarioAnswer>> QnA, string name, int available, int classID, StoryType storytype, int? id = null) {
         int? scenarioId = null;
-
-        name = "Test";
+        WWWForm form = new WWWForm();
 
         yield return SaveScenarioFunc((callback) => {
             scenarioId = callback;
         }, name, available, classID, storytype, id);
 
         if (scenarioId != null) {
-            query = "type=Figure&method=createOrUpdate&query=" + ScenarioQueryBuilder((int)scenarioId, QnA);
+            form.AddField("type", "Figure");
+            form.AddField("method", "createOrUpdate");
+            query = ScenarioQueryBuilder((int)scenarioId, QnA);
+            form.AddField("query", query);
+            form.AddField("key", EncryptString(query, key, iv));
 
-            string encryptedQuery = "&key=" + EncryptString(query, key, iv);
-            Debug.Log(query);
-
-            UnityWebRequest figure_createOrUpdate = UnityWebRequest.Get(dbUrl + query + encryptedQuery);
+            UnityWebRequest figure_createOrUpdate = UnityWebRequest.Post(dbUrl, form);
+            figure_createOrUpdate.chunkedTransfer = false;
             yield return figure_createOrUpdate.SendWebRequest();
 
             if (figure_createOrUpdate.isNetworkError || figure_createOrUpdate.isHttpError) {
                 Debug.LogError("Error occurred: " + figure_createOrUpdate.error);
-                successful(false);
+                Debug.Log(figure_createOrUpdate.downloadHandler.text);
+                if (responseCodes.Contains(figure_createOrUpdate.responseCode) && WebRequestAttempts <= MaxWebRequestAttempts) {
+                    ++WebRequestAttempts;
+                    SaveScenarioContentFunc(successful, QnA, name, available, classID, storytype, id);
+                } else
+                    successful(false);
             } else {
+                WebRequestAttempts = 0;
                 Debug.Log(figure_createOrUpdate.downloadHandler.text);
                 successful(true);
             }
         } else {
-            Debug.LogError("Scenario ID could not be set, probably due to a network error (should appear above, if not YOU FUCKED UP)");
+            Debug.LogError("Scenario ID could not be set, probably due to a network error");
         }
     }
 
@@ -441,7 +537,12 @@ public class DBConnector : MonoBehaviour {
 
         if (autoincrement_get.isNetworkError || autoincrement_get.isHttpError) {
             Debug.LogError("Error occurred: " + autoincrement_get.error);
+            if (responseCodes.Contains(autoincrement_get.responseCode) && WebRequestAttempts <= MaxWebRequestAttempts) {
+                ++WebRequestAttempts;
+                GetMaxScenarioIdFunc(callback);
+            }
         } else {
+            WebRequestAttempts = 0;
             callback(int.Parse(Regex.Replace(autoincrement_get.downloadHandler.text, "[^0-9]+", string.Empty)));
         }
     }
@@ -489,18 +590,17 @@ public class DBConnector : MonoBehaviour {
         string email = GameObject.Find("EmailInputField").GetComponent<InputField>().text;
         string password = GameObject.Find("PasswordInputField").GetComponent<InputField>().text;
         password = ComputeSha256Hash(password);
-        
+
         // Attempt to find a valid login by searching for the email address
         GetUserData((callback) => {
             if (callback == null) {
-                if (noConnection && logInAttempts <= 3) {
-                    LogIn();
+                if (logInAttempts <= 3) {
                     ++logInAttempts;
+                    LogIn();
                 } else {
                     // Incorrect email error
                     ErrorBuffer().text = "Incorrect Credentials";
                     ErrorBuffer().color = Color.red;
-                    noConnection = false;
                 }
             } else {
                 foreach (var teacher in callback) {
@@ -515,7 +615,6 @@ public class DBConnector : MonoBehaviour {
                         ErrorBuffer().text = "Incorrect Credentials";
                         ErrorBuffer().color = Color.red;
                     }
-                    noConnection = false;
                 }
             }
         }, teacherEmail: email);
@@ -655,15 +754,15 @@ public class DBConnector : MonoBehaviour {
     private static string ScenarioQueryBuilder(int scenarioId, Dictionary<ScenarioQuestion, List<ScenarioAnswer>> QnA) {
         string query = "SET @scenario_id=" + scenarioId + ";";
         foreach (ScenarioFigure f in Scenario.CurrentScenarioFigures) {
-            query += "INSERT INTO scenario_figures (scenario_id, figure_id, task, information) VALUES(@scenario_id, " + f.Figure_Id + ", '" + f.Task + "', '" + f.Information + "')" +
+            query += "INSERT INTO scenario_figure (scenario_id, figure_id, task, information) VALUES(@scenario_id, " + f.Figure_Id + ", '" + f.Task + "', '" + f.Information + "')" +
                     "ON DUPLICATE KEY UPDATE scenario_id = @scenario_id, figure_id = " + f.Figure_Id + ", task = '" + f.Task + "', information = '" + f.Information + "';" +
                     "SET @scenario_figure_id = LAST_INSERT_ID();";
             foreach (var question in QnA) {
-                query += "INSERT INTO scenario_questions (scenario_figure_id, question_text) VALUES(@scenario_figure_id, '" + question.Key.Question_Text + "')" +
+                query += "INSERT INTO scenario_question (scenario_figure_id, question_text) VALUES(@scenario_figure_id, '" + question.Key.Question_Text + "')" +
                     "ON DUPLICATE KEY UPDATE scenario_figure_id = @scenario_figure_id, question_text = '" + question.Key.Question_Text + "';" +
                     "SET @scenario_question_id = LAST_INSERT_ID();";
-                foreach(ScenarioAnswer a in question.Value) {
-                    query += "INSERT INTO scenario_answers (scenario_question_id, answer_text, correct_answer) VALUES(@scenario_question_id, '" + a.Answer_Text + "', " + a.Correct_Answer + ")" +
+                foreach (ScenarioAnswer a in question.Value) {
+                    query += "INSERT INTO scenario_answer (scenario_question_id, answer_text, correct_answer) VALUES(@scenario_question_id, '" + a.Answer_Text + "', " + a.Correct_Answer + ")" +
                     "ON DUPLICATE KEY UPDATE scenario_question_id = @scenario_question_id, answer_text = '" + a.Answer_Text + "', correct_answer = " + a.Correct_Answer + ";";
                 }
             }

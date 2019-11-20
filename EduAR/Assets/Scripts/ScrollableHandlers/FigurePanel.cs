@@ -50,17 +50,16 @@ public class FigurePanel : MonoBehaviour {
         panel.task = panel.GetComponent<Dropdown>();
         foreach (Transform go in panel.transform) {
             if (go.tag == "Information")
-                panel.informationFile.text = "test.txt";
-                //panel.informationFile = go.GetComponent<Text>();
+                panel.informationFile = go.GetComponent<Text>();
         }
-
+        
         foreach(Transform question in questionsPrefabParent.transform) {
-            foreach(Transform answer in question.gameObject.transform) {
+            foreach(Transform answer in question) {
                 if (answer.gameObject.tag == "Answer")
-                    answers.Add(answer.gameObject.GetComponentInParent<Transform>().gameObject.GetComponentInChildren<InputField>(), answer.gameObject.GetComponentInParent<Transform>().gameObject.GetComponentInChildren<Toggle>().isOn);
+                    answers.Add(answer.GetComponent<InputField>(), answer.GetComponentInChildren<Toggle>().isOn);
             }
             if (question.gameObject.tag == "Question") {
-                panel.questionsAndAnswers.Add(question.gameObject.GetComponentInParent<Transform>().gameObject.GetComponentInChildren<InputField>(), answers);
+                panel.questionsAndAnswers.Add(question.GetComponentInChildren<InputField>(), answers);
             }
         }
 

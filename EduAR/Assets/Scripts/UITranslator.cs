@@ -36,8 +36,8 @@ public class UITranslator : MonoBehaviour {
     private string figures;
 
     private void Start() {
-        panelHandler = GameObject.Find("MainCanvas").GetComponent<PanelHandler>();
-        figurePanelRef = GameObject.Find("MainCanvas").GetComponent<FigurePanel>();
+        panelHandler = DBConnector.MainCanvas.GetComponent<PanelHandler>();
+        figurePanelRef = DBConnector.MainCanvas.GetComponent<FigurePanel>();
         propertiesPanels = new Dictionary<GameObject, FigurePanel>();
     }
 
@@ -138,7 +138,7 @@ public class UITranslator : MonoBehaviour {
         GameObject newPanel = figurePanelRef.InstantiatePanel();
         propertiesPanels.Add(newPanel, newPanel.GetComponent<FigurePanel>());
     }
-    
+
     public void AddQuestion() {
         figurePanelRef.InstantiateQuestion();
     }
@@ -152,14 +152,14 @@ public class UITranslator : MonoBehaviour {
 
     public void SaveScenarioButtonFunc() {
         List<Dictionary<ScenarioQuestion, List<ScenarioAnswer>>> scenarioQnA = new List<Dictionary<ScenarioQuestion, List<ScenarioAnswer>>>();
-        Dictionary<GameObject, FigurePanel> PanelTemp = new Dictionary<GameObject, FigurePanel>();
+        Dictionary<GameObject, FigurePanel> currentFigurePanels = new Dictionary<GameObject, FigurePanel>();
         int? hiddenId = null;
 
         foreach (var panel in propertiesPanels) {
-            PanelTemp[panel.Key] = figurePanelRef.UpdateParameters(panel.Value);
+            currentFigurePanels[panel.Key] = panel.Value.UpdateParameters(panel.Value);
         }
 
-        foreach (var panel in PanelTemp) {
+        foreach (var panel in currentFigurePanels) {
             scenarioQnA.Add(QnATranslator(panel.Value));
         }
 
@@ -169,13 +169,6 @@ public class UITranslator : MonoBehaviour {
 
         if (hiddenScenarioIdField.text != "")
             hiddenId = int.Parse(hiddenScenarioIdField.text);
-
-        foreach(Dictionary<ScenarioQuestion, List<ScenarioAnswer>> dick in scenarioQnA) {
-            foreach(var question in dick) {
-                foreach(var answer in question.Value) {
-                }
-            }
-        }
 
         for (int i = 0; i <= Scenario.CurrentScenarioFigures.Count - 1; i++) {
             DBConnector.SaveScenarioContentFunc((successful) => {
@@ -212,13 +205,13 @@ public class UITranslator : MonoBehaviour {
 
     private void InstantiateFigureList(Figure f) {
         GameObject instance = Instantiate(FigureListPrefab, FigurePrefabParent);
-        foreach(Transform go in instance.transform) {
+        foreach (Transform go in instance.transform) {
             if (go.tag == "FigureName")
                 go.GetComponent<Text>().text = f.Name;
             if (go.tag == "FigureHiddenId")
                 go.GetComponent<Text>().text = f.Id.ToString();
         }
-    } 
+    }
 
     public void LoadScenarioDetails(Text hiddenScenarioId) {
         hiddenScenarioIdField.text = hiddenScenarioId.text;
