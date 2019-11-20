@@ -1,10 +1,11 @@
 ﻿public enum ScenarioFigureProperties {
+    Id,
     Scenario_Id,
     Figure_Id
 }
 
 public class ScenarioFigure {
-
+    public int Id { get; set; }
     public int Scenario_Id { get; set; }
     public int Figure_Id { get; set; }
     public string Information { get; set; }

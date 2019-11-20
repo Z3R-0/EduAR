@@ -279,7 +279,7 @@ public class DBConnector : MonoBehaviour {
         } else {
             WebRequestAttempts = 0;
             // See Decoder function for info on workings
-            callback(JSONDecoder(scenario_figure_get.downloadHandler.text, typeof(Figure).Name));
+            callback(JSONDecoder(scenario_figure_get.downloadHandler.text, typeof(ScenarioFigure).Name));
         }
     }
 
@@ -306,7 +306,7 @@ public class DBConnector : MonoBehaviour {
         } else {
             WebRequestAttempts = 0;
             // See Decoder function for info on workings
-            callback(JSONDecoder(question_get.downloadHandler.text, typeof(Figure).Name));
+            callback(JSONDecoder(question_get.downloadHandler.text, typeof(ScenarioQuestion).Name));
         }
     }
 
@@ -561,9 +561,11 @@ public class DBConnector : MonoBehaviour {
                 return JsonConvert.DeserializeObject<List<Scenario>>(data);
             case "Figure":
                 return JsonConvert.DeserializeObject<List<Figure>>(data);
-            case "Question":
+            case "ScenarioFigure":
+                return JsonConvert.DeserializeObject<List<ScenarioFigure>>(data);
+            case "ScenarioQuestion":
                 return JsonConvert.DeserializeObject<List<ScenarioQuestion>>(data);
-            case "Answer":
+            case "ScenarioAnswer":
                 return JsonConvert.DeserializeObject<List<ScenarioAnswer>>(data);
             case "Class":
                 return JsonConvert.DeserializeObject<List<Class>>(data);
