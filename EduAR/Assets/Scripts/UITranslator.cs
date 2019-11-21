@@ -291,10 +291,14 @@ public class UITranslator : MonoBehaviour {
 
         foreach(var QnA in QuestionsAndAnswers) {
             GameObject questionTemp = fp.InstantiateQuestion(QnA.Key.Question_Text);
+            Dictionary<GameObject, ScenarioAnswer> answers = new Dictionary<GameObject, ScenarioAnswer>();
             foreach (var answer in QnA.Value) {
-                fp.InstantiateAnswer(questionTemp.transform, answer.Answer_Text);
+                answers.Add(fp.InstantiateAnswer(questionTemp.transform, answer.Answer_Text), answer);
             }
-
+            foreach (var answerGOPair in answers) {
+                if (answerGOPair.Value.Correct_Answer == 1)
+                    answerGOPair.Key.GetComponentInChildren<Toggle>().isOn = true;
+            }
         }
     }
 }

@@ -50,12 +50,13 @@ public class FigurePanel : MonoBehaviour {
         return question;
     }
 
-    public void InstantiateAnswer(Transform parentQuestion, string text = null) {
+    public GameObject InstantiateAnswer(Transform parentQuestion, string text = null) {
         GameObject answer = Instantiate(answersPanelPrefab, parentQuestion);
         if (text != null)
             answer.GetComponent<InputField>().text = text;
         parentQuestion.GetComponent<QuestionListHandler>().AddToggle(answer);
         Invoke(nameof(FigurePanel.resetQnA), resetDelay);
+        return answer;
     }
 
     public FigurePanel UpdateParameters(FigurePanel panel) {
