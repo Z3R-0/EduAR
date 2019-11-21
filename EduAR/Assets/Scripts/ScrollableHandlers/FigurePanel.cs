@@ -16,6 +16,8 @@ public class FigurePanel : MonoBehaviour {
     [SerializeField]
     private GameObject resetPanel;
 
+    private float resetDelay = 0.03f;
+
     public Dropdown task { get; set; }
     public Text informationFile { get; set; }
     public Dictionary<InputField, Dictionary<InputField, bool>> questionsAndAnswers = new Dictionary<InputField, Dictionary<InputField, bool>>();
@@ -32,13 +34,20 @@ public class FigurePanel : MonoBehaviour {
         }
     }
 
-    public void InstantiateQuestion(string text = null) {
+    public void InstantiateQuestionButton() {
+        GameObject question = Instantiate(questionsPanelPrefab, questionsPrefabParent.transform);
+        InstantiateAnswer(question.transform);
+        Invoke(nameof(FigurePanel.resetQnA), resetDelay);
+    }
+
+    public GameObject InstantiateQuestion(string text = null) {
         GameObject question = Instantiate(questionsPanelPrefab, questionsPrefabParent.transform);
         if (text != null)
             question.GetComponentInChildren<InputField>().text = text;
         else
             InstantiateAnswer(question.transform);
-        Invoke(nameof(FigurePanel.resetQnA), 0.04f);
+        Invoke(nameof(FigurePanel.resetQnA), resetDelay);
+        return question;
     }
 
     public void InstantiateAnswer(Transform parentQuestion, string text = null) {
@@ -46,7 +55,7 @@ public class FigurePanel : MonoBehaviour {
         if (text != null)
             answer.GetComponent<InputField>().text = text;
         parentQuestion.GetComponent<QuestionListHandler>().AddToggle(answer);
-        Invoke(nameof(FigurePanel.resetQnA), 0.04f);
+        Invoke(nameof(FigurePanel.resetQnA), resetDelay);
     }
 
     public FigurePanel UpdateParameters(FigurePanel panel) {

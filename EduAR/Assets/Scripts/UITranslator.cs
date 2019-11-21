@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
@@ -30,10 +31,11 @@ public class UITranslator : MonoBehaviour {
     private PanelHandler panelHandler;
     private FigurePanel figurePanelRef;
     private Dictionary<GameObject, FigurePanel> propertiesPanels;
+    private Dictionary<ScenarioFigure, Dictionary<ScenarioQuestion, List<ScenarioAnswer>>> figuresWithQnA = new Dictionary<ScenarioFigure, Dictionary<ScenarioQuestion, List<ScenarioAnswer>>>();
+
 
     private List<string> createScenarioStrings = new List<string>(new string[] { "name", "available", "figures", "class_id", "storytype" });
     private List<string> addStudentStrings = new List<string>(new string[] { "name", "pincode", "class_id" });
-    private string figures;
 
     private void Start() {
         panelHandler = DBConnector.MainCanvas.GetComponent<PanelHandler>();
@@ -123,7 +125,7 @@ public class UITranslator : MonoBehaviour {
     //    throw new System.NotImplementedException();
     //}
 
-    public void AddFigure(string hiddenFigureId) {
+    public GameObject AddFigure(string hiddenFigureId) {
         if (Scenario.CurrentScenarioFigures == null)
             Scenario.CurrentScenarioFigures = new List<ScenarioFigure>();
 
@@ -137,6 +139,7 @@ public class UITranslator : MonoBehaviour {
         Scenario.CurrentScenarioFigures.Add(temp);
         GameObject newPanel = figurePanelRef.InstantiatePanel();
         propertiesPanels.Add(newPanel, newPanel.GetComponent<FigurePanel>());
+        return newPanel;
     }
 
     public void AddQuestion() {
@@ -154,6 +157,11 @@ public class UITranslator : MonoBehaviour {
         List<Dictionary<ScenarioQuestion, List<ScenarioAnswer>>> scenarioQnA = new List<Dictionary<ScenarioQuestion, List<ScenarioAnswer>>>();
         Dictionary<GameObject, FigurePanel> currentFigurePanels = new Dictionary<GameObject, FigurePanel>();
         int? hiddenId = null;
+
+        if (scenarioNameInputField.text == "") {
+            Debug.LogError("Give the scenario a name");
+            return;
+        }
 
         foreach (var panel in propertiesPanels) {
             currentFigurePanels[panel.Key] = panel.Value.UpdateParameters(panel.Value);
@@ -220,6 +228,7 @@ public class UITranslator : MonoBehaviour {
 
     public void LoadScenarioDetails(Text hiddenScenarioId) {
         hiddenScenarioIdField.text = hiddenScenarioId.text;
+        figuresWithQnA.Clear();
         GameObject[] extFigures = GameObject.FindGameObjectsWithTag("ScenarioFigure");
         foreach (GameObject figure in extFigures) {
             Destroy(figure);
@@ -243,49 +252,49 @@ public class UITranslator : MonoBehaviour {
                 scenarioStoryTypeDropDown.value = (int)temp.StoryType;
 
                 DBConnector.GetScenarioFigureData((callback) => {
-                    Dictionary<ScenarioQuestion, List<ScenarioAnswer>> QuestionsAndAnswers = new Dictionary<ScenarioQuestion, List<ScenarioAnswer>>();
                     foreach (object figure in callback) {
+                        Dictionary<ScenarioQuestion, List<ScenarioAnswer>> QuestionsAndAnswers = new Dictionary<ScenarioQuestion, List<ScenarioAnswer>>();
                         PropertyInfo[] info = figure.GetType().GetProperties();
-                        AddFigure(info[(int)ScenarioFigureProperties.Figure_Id].GetValue(figure, null).ToString());
+                        ScenarioFigure tempFigure = (ScenarioFigure)figure;
 
                         DBConnector.GetQuestionData((questionCallback) => {
                             foreach (object question in questionCallback) {
                                 PropertyInfo[] questionInfo = question.GetType().GetProperties();
-                                ScenarioQuestion tempQuestion = new ScenarioQuestion(questionInfo[(int)QuestionProperties.Question_Text].GetValue(question, null).ToString()) {
-                                    Scenario_Figure_Id = int.Parse(questionInfo[(int)QuestionProperties.Scenario_Figure_Id].GetValue(question, null).ToString())
+                                ScenarioQuestion tempQuestion = new ScenarioQuestion(questionInfo[(int)ScenarioQuestionProperties.Question_Text].GetValue(question, null).ToString()) {
+                                    Scenario_Figure_Id = int.Parse(questionInfo[(int)ScenarioQuestionProperties.Scenario_Figure_Id].GetValue(question, null).ToString())
                                 };
 
                                 DBConnector.GetAnswerData((answerCallback) => {
                                     List<ScenarioAnswer> answers = new List<ScenarioAnswer>();
                                     foreach (object answer in answerCallback) {
                                         PropertyInfo[] answerInfo = answer.GetType().GetProperties();
-                                        ScenarioAnswer tempAnswer = new ScenarioAnswer(answerInfo[(int)AnswerProperties.Text].GetValue(answer, null).ToString(), int.Parse(answerInfo[(int)AnswerProperties.Correct_Answer].GetValue(answer, null).ToString()));
+                                        ScenarioAnswer tempAnswer = new ScenarioAnswer(answerInfo[(int)ScenarioAnswerProperties.Text].GetValue(answer, null).ToString(), int.Parse(answerInfo[(int)ScenarioAnswerProperties.Correct_Answer].GetValue(answer, null).ToString()));
                                         answers.Add(tempAnswer);
                                     }
-                                    Debug.Log(tempQuestion.Question_Text);
                                     QuestionsAndAnswers.Add(tempQuestion, answers);
-
-                                    GameObject[] figures = GameObject.FindGameObjectsWithTag("ScenarioFigure");
-                                        Debug.Log(QuestionsAndAnswers.Count);
-                                        foreach (var questionAnswersPair in QuestionsAndAnswers) {
-                                        Debug.Log(questionAnswersPair.Key.Question_Text);
-                                            figures[figures.Length - 1].GetComponent<FigurePanel>().InstantiateQuestion(questionAnswersPair.Key.Question_Text);
-                                        }
-
-                                    GameObject[] questions = GameObject.FindGameObjectsWithTag("Question");
-                                        foreach (var questionAnswersPair in QuestionsAndAnswers) {
-                                            foreach (var answer in questionAnswersPair.Value) {
-                                                questions[questions.Length - 1].transform.parent.parent.parent.GetComponent<FigurePanel>().InstantiateAnswer(questions[questions.Length - 1].transform, answer.Answer_Text);
-                                            }
-                                        }
-                                }, scenario_question_id: int.Parse(questionInfo[(int)QuestionProperties.Id].GetValue(question, null).ToString()));
+                                    InitializeScenarioFigure(tempFigure, QuestionsAndAnswers);
+                                }, scenario_question_id: int.Parse(questionInfo[(int)ScenarioQuestionProperties.Id].GetValue(question, null).ToString()));
                             }
+                            figuresWithQnA.Add(tempFigure, QuestionsAndAnswers);
                         }, scenario_figure_id: int.Parse(info[(int)ScenarioFigureProperties.Id].GetValue(figure, null).ToString()));
                     }
                 }, scenario_id: int.Parse(hiddenScenarioId.text));
             } else {
                 Debug.LogError("Something went wrong while trying to load scenario details of scenario id: " + hiddenScenarioIdField.text);
             }
+        }
+    }
+
+    private void InitializeScenarioFigure(ScenarioFigure figure, Dictionary<ScenarioQuestion, List<ScenarioAnswer>> QuestionsAndAnswers) {
+        GameObject newPanel = AddFigure(figure.Figure_Id.ToString());
+        FigurePanel fp = newPanel.GetComponent<FigurePanel>();
+
+        foreach(var QnA in QuestionsAndAnswers) {
+            GameObject questionTemp = fp.InstantiateQuestion(QnA.Key.Question_Text);
+            foreach (var answer in QnA.Value) {
+                fp.InstantiateAnswer(questionTemp.transform, answer.Answer_Text);
+            }
+
         }
     }
 }

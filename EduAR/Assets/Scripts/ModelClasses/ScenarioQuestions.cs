@@ -1,4 +1,4 @@
-﻿public enum QuestionProperties {
+﻿public enum ScenarioQuestionProperties {
     Id,
     Scenario_Figure_Id,
     Question_Text

@@ -1,4 +1,4 @@
-﻿public enum AnswerProperties {
+﻿public enum ScenarioAnswerProperties {
     Id,
     Scenario_Question_Id,
     Text,

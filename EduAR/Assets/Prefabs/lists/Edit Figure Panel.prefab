@@ -2104,7 +2104,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 7647151898783150580}
-        m_MethodName: InstantiateQuestion
+        m_MethodName: InstantiateQuestionButton
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
