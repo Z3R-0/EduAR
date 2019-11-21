@@ -8,6 +8,8 @@ TagManager:
   - Answer
   - FigureName
   - FigureHiddenId
+  - StudentInput
+  - Figure
   layers:
   - Default
   - TransparentFX
