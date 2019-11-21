@@ -130,14 +130,22 @@ public class UITranslator : MonoBehaviour {
             Scenario.CurrentScenarioFigures = new List<ScenarioFigure>();
 
         ScenarioFigure temp = null;
+        string image = "";
 
         foreach (Figure f in Figure.FigureList) {
             if (f.Id == int.Parse(hiddenFigureId)) {
                 temp = new ScenarioFigure(f.Id);
+                image = f.Image;
             }
         }
         Scenario.CurrentScenarioFigures.Add(temp);
         GameObject newPanel = figurePanelRef.InstantiatePanel();
+
+        Image[] images = newPanel.GetComponentsInChildren<Image>();
+        foreach(Image i in images) {
+            if(i.tag == "FigureImage")
+                i.sprite = Resources.Load<Sprite>(image);
+        }
         propertiesPanels.Add(newPanel, newPanel.GetComponent<FigurePanel>());
         return newPanel;
     }
@@ -219,6 +227,10 @@ public class UITranslator : MonoBehaviour {
     private void InstantiateFigureList(Figure f) {
         GameObject instance = Instantiate(FigureListPrefab, FigurePrefabParent);
         foreach (Transform go in instance.transform) {
+            if (go.tag == "FigureImage") {
+                go.GetComponent<Image>().sprite = Resources.Load<Sprite>(f.Image);
+                Debug.Log(f.Image);
+            }
             if (go.tag == "FigureName")
                 go.GetComponent<Text>().text = f.Name;
             if (go.tag == "FigureHiddenId")

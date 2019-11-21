@@ -11,6 +11,7 @@ TagManager:
   - Figure
   - StudentInput
   - ScenarioFigure
+  - FigureImage
   layers:
   - Default
   - TransparentFX
