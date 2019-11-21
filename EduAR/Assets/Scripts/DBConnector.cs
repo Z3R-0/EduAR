@@ -770,6 +770,7 @@ public class DBConnector : MonoBehaviour {
             }
             ++QnAIndex;
         }
+        Debug.Log(query);
         return query;
     }
 
