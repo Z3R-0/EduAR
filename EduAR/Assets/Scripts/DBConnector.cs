@@ -146,7 +146,7 @@ public class DBConnector : MonoBehaviour {
 
     #region Database Interface UpdateOrCreate Functions
 
-    public static Coroutine SaveScenarioContentFunc(Action<bool> successful, Dictionary<ScenarioQuestion, List<ScenarioAnswer>> QnA, string name, int available, int classID, StoryType storytype, int? id = null) {
+    public static Coroutine SaveScenarioContentFunc(Action<bool> successful, List<Dictionary<ScenarioQuestion, List<ScenarioAnswer>>> QnA, string name, int available, int classID, StoryType storytype, int? id = null) {
         return Instance.StartCoroutine(SaveScenarioContent(successful, QnA, name, available, classID, storytype, id));
     }
 
@@ -472,7 +472,7 @@ public class DBConnector : MonoBehaviour {
 
         query = "type=Scenario&method=createOrUpdate&query=INSERT INTO scenario (id, name, available, class_id, storytype)" +
                 "VALUES (" + id + ", '" + name + "'," + available + "," + classID + ",'" + storytype + "') ON DUPLICATE KEY " +
-                "UPDATE name = '" + name + "', available = " + available + ", class_id = " + classID + ", storytype = '" + storytype + "';";
+                "UPDATE id = LAST_INSERT_ID(id), name = '" + name + "', available = " + available + ", class_id = " + classID + ", storytype = '" + storytype + "';";
 
         string encryptedQuery = "&key=" + EncryptString(query, key, iv);
         UnityWebRequest scenario_updateOrCreate = UnityWebRequest.Get(dbUrl + query + encryptedQuery);
@@ -490,7 +490,7 @@ public class DBConnector : MonoBehaviour {
         }
     }
 
-    private static IEnumerator SaveScenarioContent(Action<bool> successful, Dictionary<ScenarioQuestion, List<ScenarioAnswer>> QnA, string name, int available, int classID, StoryType storytype, int? id = null) {
+    private static IEnumerator SaveScenarioContent(Action<bool> successful, List<Dictionary<ScenarioQuestion, List<ScenarioAnswer>>> QnA, string name, int available, int classID, StoryType storytype, int? id = null) {
         int? scenarioId = null;
         WWWForm form = new WWWForm();
 
@@ -519,7 +519,6 @@ public class DBConnector : MonoBehaviour {
                     successful(false);
             } else {
                 WebRequestAttempts = 0;
-                Debug.Log(figure_createOrUpdate.downloadHandler.text);
                 successful(true);
             }
         } else {
@@ -753,21 +752,23 @@ public class DBConnector : MonoBehaviour {
         return plainText;
     }
 
-    private static string ScenarioQueryBuilder(int scenarioId, Dictionary<ScenarioQuestion, List<ScenarioAnswer>> QnA) {
+    private static string ScenarioQueryBuilder(int scenarioId, List<Dictionary<ScenarioQuestion, List<ScenarioAnswer>>> QnA) {
         string query = "SET @scenario_id=" + scenarioId + ";";
+        int QnAIndex = 0;
         foreach (ScenarioFigure f in Scenario.CurrentScenarioFigures) {
-            query += "INSERT INTO scenario_figure (scenario_id, figure_id, task, information) VALUES(@scenario_id, " + f.Figure_Id + ", '" + f.Task + "', '" + f.Information + "')" +
-                    "ON DUPLICATE KEY UPDATE scenario_id = @scenario_id, figure_id = " + f.Figure_Id + ", task = '" + f.Task + "', information = '" + f.Information + "';" +
+            query += "INSERT INTO scenario_figure (id, scenario_id, figure_id, task, information) VALUES(" + f.Id + ", @scenario_id, " + f.Figure_Id + ", '" + f.Task + "', '" + f.Information + "')" +
+                    "ON DUPLICATE KEY UPDATE id = " + f.Id + ", scenario_id = @scenario_id, figure_id = " + f.Figure_Id + ", task = '" + f.Task + "', information = '" + f.Information + "';" +
                     "SET @scenario_figure_id = LAST_INSERT_ID();";
-            foreach (var question in QnA) {
-                query += "INSERT INTO scenario_question (scenario_figure_id, question_text) VALUES(@scenario_figure_id, '" + question.Key.Question_Text + "')" +
-                    "ON DUPLICATE KEY UPDATE scenario_figure_id = @scenario_figure_id, question_text = '" + question.Key.Question_Text + "';" +
+            foreach (var question in QnA[QnAIndex]) {
+                query += "INSERT INTO scenario_question (id, scenario_figure_id, question_text) VALUES(" + question.Key.Id + ", @scenario_figure_id, '" + question.Key.Question_Text + "')" +
+                    "ON DUPLICATE KEY UPDATE id = " + question.Key.Id + ", scenario_figure_id = " + question.Key.Scenario_Figure_Id + ", question_text = '" + question.Key.Question_Text + "';" +
                     "SET @scenario_question_id = LAST_INSERT_ID();";
                 foreach (ScenarioAnswer a in question.Value) {
-                    query += "INSERT INTO scenario_answer (scenario_question_id, answer_text, correct_answer) VALUES(@scenario_question_id, '" + a.Answer_Text + "', " + a.Correct_Answer + ")" +
-                    "ON DUPLICATE KEY UPDATE scenario_question_id = @scenario_question_id, answer_text = '" + a.Answer_Text + "', correct_answer = " + a.Correct_Answer + ";";
+                    query += "INSERT INTO scenario_answer (id, scenario_question_id, answer_text, correct_answer) VALUES(" + a.Id + ", @scenario_question_id, '" + a.Answer_Text + "', " + a.Correct_Answer + ")" +
+                    "ON DUPLICATE KEY UPDATE id = " + a.Id + ", scenario_question_id = " + a.Scenario_Question_Id + ", answer_text = '" + a.Answer_Text + "', correct_answer = " + a.Correct_Answer + ";";
                 }
             }
+            ++QnAIndex;
         }
         return query;
     }

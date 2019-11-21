@@ -128,6 +128,8 @@ public class PanelHandler : MonoBehaviour {
     /// </summary>
     /// <param name="panel">The panel to switch to</param>
     public void SwitchPanel(string panel) {
+        if (panel == "CreateScenario")
+            translator.Clear();
         // hide current panel
         panels[(int)CurrentPanel()].SetActive(false);
         // show new panel

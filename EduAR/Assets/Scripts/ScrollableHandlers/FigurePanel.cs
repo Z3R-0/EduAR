@@ -40,20 +40,28 @@ public class FigurePanel : MonoBehaviour {
         Invoke(nameof(FigurePanel.resetQnA), resetDelay);
     }
 
-    public GameObject InstantiateQuestion(string text = null) {
+    public GameObject InstantiateQuestion(string text = null, int? questionFigureId = null, int? questionId = null) {
         GameObject question = Instantiate(questionsPanelPrefab, questionsPrefabParent.transform);
         if (text != null)
             question.GetComponentInChildren<InputField>().text = text;
         else
             InstantiateAnswer(question.transform);
+        if (questionId != null && questionFigureId != null) {
+            question.GetComponentInChildren<Slider>().gameObject.GetComponent<Text>().text = questionId.ToString();
+            question.GetComponentInChildren<Dropdown>().gameObject.GetComponent<Text>().text = questionFigureId.ToString();
+        }
         Invoke(nameof(FigurePanel.resetQnA), resetDelay);
         return question;
     }
 
-    public GameObject InstantiateAnswer(Transform parentQuestion, string text = null) {
+    public GameObject InstantiateAnswer(Transform parentQuestion, string text = null, int? answerQuestionId = null, int? answerId = null) {
         GameObject answer = Instantiate(answersPanelPrefab, parentQuestion);
         if (text != null)
             answer.GetComponent<InputField>().text = text;
+        if (answerId != null) {
+            answer.GetComponentInChildren<Slider>().gameObject.GetComponent<Text>().text = answerId.ToString();
+            answer.GetComponentInChildren<Dropdown>().gameObject.GetComponent<Text>().text = answerQuestionId.ToString();
+        }
         parentQuestion.GetComponent<QuestionListHandler>().AddToggle(answer);
         Invoke(nameof(FigurePanel.resetQnA), resetDelay);
         return answer;
