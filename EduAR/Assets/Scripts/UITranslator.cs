@@ -220,7 +220,10 @@ public class UITranslator : MonoBehaviour {
 
     public void LoadScenarioDetails(Text hiddenScenarioId) {
         hiddenScenarioIdField.text = hiddenScenarioId.text;
-        Debug.Log("HiddenId = " + hiddenScenarioId.text.ToString());
+        GameObject[] extFigures = GameObject.FindGameObjectsWithTag("ScenarioFigure");
+        foreach (GameObject figure in extFigures) {
+            Destroy(figure);
+        }
         if (hiddenScenarioId.text == "" || hiddenScenarioId == null) {
             scenarioAvailableToggle.isOn = true;
             scenarioNameInputField.text = "";
@@ -238,12 +241,11 @@ public class UITranslator : MonoBehaviour {
                     scenarioAvailableToggle.isOn = false;
                 scenarioNameInputField.text = temp.Name;
                 scenarioStoryTypeDropDown.value = (int)temp.StoryType;
-                DBConnector.GetScenarioFigureData((callback) => {
 
+                DBConnector.GetScenarioFigureData((callback) => {
                     Dictionary<ScenarioQuestion, List<ScenarioAnswer>> QuestionsAndAnswers = new Dictionary<ScenarioQuestion, List<ScenarioAnswer>>();
                     foreach (object figure in callback) {
                         PropertyInfo[] info = figure.GetType().GetProperties();
-                        Debug.Log(info);
                         AddFigure(info[(int)ScenarioFigureProperties.Figure_Id].GetValue(figure, null).ToString());
 
                         DBConnector.GetQuestionData((questionCallback) => {
@@ -255,31 +257,30 @@ public class UITranslator : MonoBehaviour {
 
                                 DBConnector.GetAnswerData((answerCallback) => {
                                     List<ScenarioAnswer> answers = new List<ScenarioAnswer>();
-                                    foreach (object answer in questionCallback) {
+                                    foreach (object answer in answerCallback) {
                                         PropertyInfo[] answerInfo = answer.GetType().GetProperties();
                                         ScenarioAnswer tempAnswer = new ScenarioAnswer(answerInfo[(int)AnswerProperties.Text].GetValue(answer, null).ToString(), int.Parse(answerInfo[(int)AnswerProperties.Correct_Answer].GetValue(answer, null).ToString()));
                                         answers.Add(tempAnswer);
                                     }
+                                    Debug.Log(tempQuestion.Question_Text);
                                     QuestionsAndAnswers.Add(tempQuestion, answers);
+
+                                    GameObject[] figures = GameObject.FindGameObjectsWithTag("ScenarioFigure");
+                                        Debug.Log(QuestionsAndAnswers.Count);
+                                        foreach (var questionAnswersPair in QuestionsAndAnswers) {
+                                        Debug.Log(questionAnswersPair.Key.Question_Text);
+                                            figures[figures.Length - 1].GetComponent<FigurePanel>().InstantiateQuestion(questionAnswersPair.Key.Question_Text);
+                                        }
+
+                                    GameObject[] questions = GameObject.FindGameObjectsWithTag("Question");
+                                        foreach (var questionAnswersPair in QuestionsAndAnswers) {
+                                            foreach (var answer in questionAnswersPair.Value) {
+                                                questions[questions.Length - 1].transform.parent.parent.parent.GetComponent<FigurePanel>().InstantiateAnswer(questions[questions.Length - 1].transform, answer.Answer_Text);
+                                            }
+                                        }
                                 }, scenario_question_id: int.Parse(questionInfo[(int)QuestionProperties.Id].GetValue(question, null).ToString()));
                             }
-                        }, int.Parse(info[(int)ScenarioFigureProperties.Figure_Id].GetValue(figure, null).ToString()));
-                    }
-
-                    GameObject[] figures = GameObject.FindGameObjectsWithTag("Figure");
-                    for (int i = 0; i < figures.Length; i++) {
-                        foreach (var questionAnswersPair in QuestionsAndAnswers) {
-                            figures[i].GetComponent<FigurePanel>().InstantiateQuestion(questionAnswersPair.Key.Question_Text);
-                        }
-                    }
-
-                    GameObject[] questions = GameObject.FindGameObjectsWithTag("Question");
-                    for (int i = 0; i < questions.Length; i++) {
-                        foreach(var questionAnswersPair in QuestionsAndAnswers) {
-                            foreach(var answer in questionAnswersPair.Value) {
-                                questions[i].transform.parent.parent.parent.GetComponent<FigurePanel>().InstantiateAnswer(questions[i].transform, answer.Answer_Text);
-                            }
-                        }
+                        }, scenario_figure_id: int.Parse(info[(int)ScenarioFigureProperties.Id].GetValue(figure, null).ToString()));
                     }
                 }, scenario_id: int.Parse(hiddenScenarioId.text));
             } else {

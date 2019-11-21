@@ -35,10 +35,10 @@ public class FigurePanel : MonoBehaviour {
     public void InstantiateQuestion(string text = null) {
         GameObject question = Instantiate(questionsPanelPrefab, questionsPrefabParent.transform);
         if (text != null)
-            question.GetComponent<InputField>().text = text;
+            question.GetComponentInChildren<InputField>().text = text;
         else
             InstantiateAnswer(question.transform);
-        Invoke(nameof(FigurePanel.resetQnA), 0.02f);
+        Invoke(nameof(FigurePanel.resetQnA), 0.04f);
     }
 
     public void InstantiateAnswer(Transform parentQuestion, string text = null) {
@@ -46,7 +46,7 @@ public class FigurePanel : MonoBehaviour {
         if (text != null)
             answer.GetComponent<InputField>().text = text;
         parentQuestion.GetComponent<QuestionListHandler>().AddToggle(answer);
-        Invoke(nameof(FigurePanel.resetQnA), 0.02f);
+        Invoke(nameof(FigurePanel.resetQnA), 0.04f);
     }
 
     public FigurePanel UpdateParameters(FigurePanel panel) {
