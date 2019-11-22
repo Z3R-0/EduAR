@@ -27,6 +27,8 @@ public class UITranslator : MonoBehaviour {
     private GameObject StudentListPrefab;
     [SerializeField]
     private Transform StudentPrefabParent;
+    [SerializeField]
+    private Text CreateScenarioErrorBuffer;
 
     private PanelHandler panelHandler;
     private FigurePanel figurePanelRef;
@@ -157,7 +159,8 @@ public class UITranslator : MonoBehaviour {
         int? hiddenId = null;
 
         if (scenarioNameInputField.text == "") {
-            Debug.LogError("Give the scenario a name");
+            CreateScenarioErrorBuffer.color = Color.red;
+            CreateScenarioErrorBuffer.text = "Geef het scenario een naam";
             return;
         }
 
@@ -185,6 +188,8 @@ public class UITranslator : MonoBehaviour {
             if (toBeRemovedPanels.Count > 0) {
                 DBConnector.DeleteScenarioContentFunc((successfulDelete) => { }, toBeRemovedPanels);
             }
+            CreateScenarioErrorBuffer.color = Color.green;
+            CreateScenarioErrorBuffer.text = "Scenario opgeslagen";
         }, scenarioQnA, scenarioNameInputField.text, available, Teacher.currentTeacher.Class_ID, (StoryType)scenarioStoryTypeDropDown.value, hiddenId);
     }
 

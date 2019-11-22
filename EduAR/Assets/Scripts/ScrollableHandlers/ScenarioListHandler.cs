@@ -10,7 +10,17 @@ public class ScenarioListHandler : MonoBehaviour {
     [SerializeField]
     private Transform ScenarioPrefabParent;
 
-    private void Start() {
+    private void OnEnable() {
+        InitializeScenarioList();
+    }
+
+    public void Clear() {
+        foreach (Transform child in ScenarioPrefabParent) {
+            Destroy(child.gameObject);
+        }
+    }
+
+    private void InitializeScenarioList() {
         DBConnector.GetScenarioData((callback) => {
             foreach (var scenario in callback) {
                 Scenario.Scenarios.Add(scenario);
@@ -21,9 +31,7 @@ public class ScenarioListHandler : MonoBehaviour {
                 texts[1].text = info[(int)StudentProperties.Id].GetValue(scenario, null).ToString();
             }
 
-            foreach (Transform child in ScenarioPrefabParent) {
-                Destroy(child.gameObject);
-            }
+            Clear();
 
             foreach (var scenario in callback) {
                 Scenario.Scenarios.Add(scenario);

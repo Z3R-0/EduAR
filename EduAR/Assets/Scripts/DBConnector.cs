@@ -699,6 +699,7 @@ public class DBConnector : MonoBehaviour {
                     if (email == info[(int)TeacherProperties.Email].GetValue(teacher, null).ToString() && password == info[(int)TeacherProperties.Password].GetValue(teacher, null).ToString()) {
                         // Correct login detected, set the current teacher
                         Teacher.currentTeacher = (Teacher)teacher;
+                        GameObject.Find("PasswordInputField").GetComponent<InputField>().text = "";
                         if (panelHandler != null)
                             panelHandler.LoggedIn();
                     } else {

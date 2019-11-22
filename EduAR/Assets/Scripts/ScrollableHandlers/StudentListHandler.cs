@@ -9,7 +9,17 @@ public class StudentListHandler : MonoBehaviour {
     [SerializeField]
     private Transform StudentPrefabParent;
 
-    private void Start() {
+    private void OnEnable() {
+        InitializeStudentList();
+    }
+
+    public void Clear() {
+        foreach (Transform child in StudentPrefabParent) {
+            Destroy(child.gameObject);
+        }
+    }
+
+    private void InitializeStudentList() {
         DBConnector.GetUserData((callback) => {
             foreach (var student in callback) {
                 Student.Students.Add(student);
@@ -21,9 +31,7 @@ public class StudentListHandler : MonoBehaviour {
                 inputs[2].text = info[(int)StudentProperties.Id].GetValue(student, null).ToString();
             }
 
-            foreach (Transform child in StudentPrefabParent) {
-                Destroy(child.gameObject);
-            }
+            Clear();
 
             foreach (var student in callback) {
                 Student.Students.Add(student);

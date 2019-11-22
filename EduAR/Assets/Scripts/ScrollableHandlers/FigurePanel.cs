@@ -23,7 +23,7 @@ public class FigurePanel : MonoBehaviour {
     private float resetDelay = 0.04f;
 
     public Dropdown task { get; set; }
-    public Text informationFile { get; set; }
+    public string informationFile { get; set; }
     public Dictionary<InputField, Dictionary<InputField, bool>> questionsAndAnswers = new Dictionary<InputField, Dictionary<InputField, bool>>();
 
     public GameObject InstantiatePanel() {
@@ -92,7 +92,7 @@ public class FigurePanel : MonoBehaviour {
         panel.task = panel.GetComponent<Dropdown>();
         foreach (Transform go in panel.transform) {
             if (go.tag == "Information")
-                panel.informationFile = go.GetComponent<Text>();
+                panel.informationFile = go.GetComponent<InputField>().text;
         }
 
         foreach (Transform question in questionsPrefabParent.transform) {
