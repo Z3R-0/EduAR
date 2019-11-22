@@ -156,6 +156,22 @@ public class DBConnector : MonoBehaviour {
 
     #endregion
 
+    #region Database Interface Deleter Functions
+
+    public static Coroutine DeleteScenarioContentFunc(Action<bool> successful, Dictionary<GameObject, FigurePanel> toBeRemovedPanels) {
+        return Instance.StartCoroutine(DeleteScenarioContent(successful, toBeRemovedPanels));
+    }
+
+    public static Coroutine DeleteScenarioFunc(Action<bool> successful, int scenarioId) {
+        return Instance.StartCoroutine(DeleteScenario(successful, scenarioId));
+    }
+
+    public static Coroutine DeleteStudentFunc(Action<bool> successful, int studentId) {
+        return Instance.StartCoroutine(DeleteStudent(successful, studentId));
+    }
+
+    #endregion
+
     #region Database Getters
 
     // See comments above function GetUserData for info
@@ -548,6 +564,80 @@ public class DBConnector : MonoBehaviour {
 
     #endregion
 
+    #region Database Deleters
+
+    private static IEnumerator DeleteScenario(Action<bool> successful, int scenarioId) {
+        query = "type=Scenario&method=delete&query=";
+
+        query += "DELETE FROM scenario WHERE id = " + scenarioId + ";";
+
+        string encryptedQuery = "&key=" + EncryptString(query, key, iv);
+        UnityWebRequest scenario_delete = UnityWebRequest.Get(dbUrl + query + encryptedQuery);
+        yield return scenario_delete.SendWebRequest();
+
+        if (scenario_delete.isNetworkError || scenario_delete.isHttpError) {
+            Debug.LogError("Error occurred: " + scenario_delete.error);
+            if (responseCodes.Contains(scenario_delete.responseCode) && WebRequestAttempts <= MaxWebRequestAttempts) {
+                ++WebRequestAttempts;
+                DeleteScenarioFunc(successful, scenarioId);
+            } else
+                successful(false);
+        } else {
+            WebRequestAttempts = 0;
+            successful(true);
+        }
+    }
+
+    private static IEnumerator DeleteStudent(Action<bool> successful, int studentId) {
+        query = "type=Student&method=delete&query=";
+
+        query += "DELETE FROM student WHERE id = " + studentId + ";";
+
+        string encryptedQuery = "&key=" + EncryptString(query, key, iv);
+        UnityWebRequest student_delete = UnityWebRequest.Get(dbUrl + query + encryptedQuery);
+        yield return student_delete.SendWebRequest();
+
+        if (student_delete.isNetworkError || student_delete.isHttpError) {
+            Debug.LogError("Error occurred: " + student_delete.error);
+            if (responseCodes.Contains(student_delete.responseCode) && WebRequestAttempts <= MaxWebRequestAttempts) {
+                ++WebRequestAttempts;
+                DeleteStudentFunc(successful, studentId);
+            } else
+                successful(false);
+        } else {
+            WebRequestAttempts = 0;
+            successful(true);
+        }
+    }
+
+    private static IEnumerator DeleteScenarioContent(Action<bool> successful, Dictionary<GameObject, FigurePanel> toBeRemovedPanels) {
+        WWWForm form = new WWWForm();
+
+        form.AddField("type", "Figure");
+        form.AddField("method", "delete");
+        query = DeleteScenarioQueryBuilder(toBeRemovedPanels);
+        form.AddField("query", query);
+        form.AddField("key", EncryptString(query, key, iv));
+
+        UnityWebRequest figure_delete = UnityWebRequest.Post(dbUrl, form);
+        figure_delete.chunkedTransfer = false;
+        yield return figure_delete.SendWebRequest();
+
+        if (figure_delete.isNetworkError || figure_delete.isHttpError) {
+            Debug.LogError("Error occurred: " + figure_delete.error);
+            if (responseCodes.Contains(figure_delete.responseCode) && WebRequestAttempts <= MaxWebRequestAttempts) {
+                ++WebRequestAttempts;
+                DeleteScenarioContentFunc(successful, toBeRemovedPanels);
+            } else
+                successful(false);
+        } else {
+            WebRequestAttempts = 0;
+            successful(true);
+        }
+    }
+
+    #endregion
+
     // Decodes the received JSON string to an object of the type requested by the parameters
     public static IList JSONDecoder(string data, string type) {
         // Switch case is on string rather than type because C# doesn't support siwtching on type
@@ -770,7 +860,14 @@ public class DBConnector : MonoBehaviour {
             }
             ++QnAIndex;
         }
-        Debug.Log(query);
+        return query;
+    }
+
+    private static string DeleteScenarioQueryBuilder(Dictionary<GameObject, FigurePanel> toBeRemovedPanels) {
+        string query = "";
+        foreach(var scenarioFigure in toBeRemovedPanels) {
+            query += "DELETE FROM scenario_figure WHERE id = " + scenarioFigure.Value.hiddenScenarioFigureId + ";";
+        }
         return query;
     }
 

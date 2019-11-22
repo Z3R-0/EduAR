@@ -31,6 +31,7 @@ public class UITranslator : MonoBehaviour {
     private PanelHandler panelHandler;
     private FigurePanel figurePanelRef;
     private Dictionary<GameObject, FigurePanel> propertiesPanels;
+    private Dictionary<GameObject, FigurePanel> toBeRemovedPanels;
     private Dictionary<ScenarioFigure, Dictionary<ScenarioQuestion, List<ScenarioAnswer>>> figuresWithQnA = new Dictionary<ScenarioFigure, Dictionary<ScenarioQuestion, List<ScenarioAnswer>>>();
 
 
@@ -41,6 +42,7 @@ public class UITranslator : MonoBehaviour {
         panelHandler = DBConnector.MainCanvas.GetComponent<PanelHandler>();
         figurePanelRef = DBConnector.MainCanvas.GetComponent<FigurePanel>();
         propertiesPanels = new Dictionary<GameObject, FigurePanel>();
+        toBeRemovedPanels = new Dictionary<GameObject, FigurePanel>();
         if (Scenario.CurrentScenarioFigures == null)
             Scenario.CurrentScenarioFigures = new List<ScenarioFigure>();
     }
@@ -54,6 +56,15 @@ public class UITranslator : MonoBehaviour {
         foreach (GameObject figure in extFigures) {
             Destroy(figure);
         }
+    }
+
+    public void RemoveNewPanel(GameObject panel) {
+        propertiesPanels.Remove(panel);
+    }
+
+    public void RemoveExistingPanel(GameObject panel) {
+        toBeRemovedPanels.Add(panel, panel.GetComponent<FigurePanel>());
+        propertiesPanels.Remove(panel);
     }
 
     public void AddStudent() {
@@ -89,21 +100,6 @@ public class UITranslator : MonoBehaviour {
         }, (string)info[addStudentStrings[0]], (string)info[addStudentStrings[1]], (int)info[addStudentStrings[2]]);
     }
 
-    //private Dictionary<string, object> GetScenarioCreationValues() {
-    //    Dictionary<string, object> result = new Dictionary<string, object>();
-
-    //    result.Add("name", scenarioNameInputField.text);
-    //    if (scenarioAvailableToggle.isOn)
-    //        result.Add("available", 1);
-    //    else
-    //        result.Add("available", 0);
-    //    result.Add("figures", GetCurrentScenarioFigureList());
-    //    result.Add("class_id", Teacher.currentTeacher.Class_ID);
-    //    result.Add("storytype", scenarioStoryTypeDropDown.itemText);
-
-    //    return result;
-    //}
-
     private Dictionary<string, object> GetStudentAddValues() {
         Dictionary<string, object> result = new Dictionary<string, object>();
 
@@ -113,10 +109,6 @@ public class UITranslator : MonoBehaviour {
 
         return result;
     }
-
-    //public string GetCurrentScenarioFigureList() {
-    //    throw new System.NotImplementedException();
-    //}
 
     public GameObject AddFigure(string hiddenFigureId, ScenarioFigure figure = null) {
         ScenarioFigure temp = null;
@@ -134,6 +126,12 @@ public class UITranslator : MonoBehaviour {
         }
         Scenario.CurrentScenarioFigures.Add(temp);
         GameObject newPanel = figurePanelRef.InstantiatePanel();
+        if (figure != null) {
+            newPanel.GetComponentInChildren<Slider>().GetComponent<Text>().text = figure.Id.ToString();
+            newPanel.GetComponent<FigurePanel>().hiddenScenarioFigureId = figure.Id;
+        }
+        newPanel.GetComponent<FigurePanel>().hiddenIndex = FigurePanel.currentIndex + 1;
+        FigurePanel.currentIndex++;
 
         Image[] images = newPanel.GetComponentsInChildren<Image>();
         foreach (Image i in images) {
@@ -152,12 +150,10 @@ public class UITranslator : MonoBehaviour {
         figurePanelRef.InstantiateAnswer(parentQuestion);
     }
 
-    // TODO ADD ANSWER/QUESTION/FIGURE REMOVERS --------------------------------------------------------------------------------------------------------------------------------------
-    // PLEASE DO IT PLEASE DO IT PLEASE DO IT PLEASE DO IT PLEASE DO IT PLEASE DO IT PLEASE DO IT PLEASE DO IT PLEASE DO IT PLEASE DO IT PLEASE DO IT PLEASE DO IT PLEASE DO IT
-
     public void SaveScenarioButtonFunc() {
         List<Dictionary<ScenarioQuestion, List<ScenarioAnswer>>> scenarioQnA = new List<Dictionary<ScenarioQuestion, List<ScenarioAnswer>>>();
         Dictionary<GameObject, FigurePanel> currentFigurePanels = new Dictionary<GameObject, FigurePanel>();
+
         int? hiddenId = null;
 
         if (scenarioNameInputField.text == "") {
@@ -186,6 +182,9 @@ public class UITranslator : MonoBehaviour {
                     hiddenScenarioIdField.text = (callback - 1).ToString();
                 });
             }
+            if (toBeRemovedPanels.Count > 0) {
+                DBConnector.DeleteScenarioContentFunc((successfulDelete) => { }, toBeRemovedPanels);
+            }
         }, scenarioQnA, scenarioNameInputField.text, available, Teacher.currentTeacher.Class_ID, (StoryType)scenarioStoryTypeDropDown.value, hiddenId);
     }
 
@@ -198,13 +197,19 @@ public class UITranslator : MonoBehaviour {
                 int trueOrFalse = 0;
                 if (answer.Value)
                     trueOrFalse = 1;
-                int answerHiddenId = int.Parse(answer.Key.GetComponentInChildren<Slider>().gameObject.GetComponent<Text>().text);
-                int answerQuestionHiddenId = int.Parse(answer.Key.GetComponentInChildren<Dropdown>().gameObject.GetComponent<Text>().text);
-                answersTemp.Add(new ScenarioAnswer(answerHiddenId, answerQuestionHiddenId, answer.Key.text, trueOrFalse));
+                if (answer.Key.GetComponentInChildren<Slider>().gameObject.GetComponent<Text>().text != "") {
+                    int answerHiddenId = int.Parse(answer.Key.GetComponentInChildren<Slider>().gameObject.GetComponent<Text>().text);
+                    int answerQuestionHiddenId = int.Parse(answer.Key.GetComponentInChildren<Dropdown>().gameObject.GetComponent<Text>().text);
+                    answersTemp.Add(new ScenarioAnswer(answerHiddenId, answerQuestionHiddenId, answer.Key.text, trueOrFalse));
+                } else
+                    answersTemp.Add(new ScenarioAnswer(answer.Key.text, trueOrFalse));
             }
-            int questionHiddenId = int.Parse(question.Key.transform.parent.GetComponentInChildren<Slider>().gameObject.GetComponent<Text>().text);
-            int questionFigureHiddenId = int.Parse(question.Key.transform.parent.GetComponentInChildren<Dropdown>().gameObject.GetComponent<Text>().text);
-            result.Add(new ScenarioQuestion(questionHiddenId, questionFigureHiddenId, question.Key.text), answersTemp);
+            if (question.Key.transform.parent.GetComponentInChildren<Slider>().gameObject.GetComponent<Text>().text != "") {
+                int questionHiddenId = int.Parse(question.Key.transform.parent.GetComponentInChildren<Slider>().gameObject.GetComponent<Text>().text);
+                int questionFigureHiddenId = int.Parse(question.Key.transform.parent.GetComponentInChildren<Dropdown>().gameObject.GetComponent<Text>().text);
+                result.Add(new ScenarioQuestion(questionHiddenId, questionFigureHiddenId, question.Key.text), answersTemp);
+            } else
+                result.Add(new ScenarioQuestion(question.Key.text), answersTemp);
         }
 
         return result;
@@ -298,5 +303,6 @@ public class UITranslator : MonoBehaviour {
                     answerGOPair.Key.GetComponentInChildren<Toggle>().isOn = true;
             }
         }
+        figurePanelRef.resetPanelsFunc();
     }
 }

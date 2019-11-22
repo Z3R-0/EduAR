@@ -12,6 +12,8 @@ TagManager:
   - StudentInput
   - ScenarioFigure
   - FigureImage
+  - QuestionHiddenId
+  - AnswerHiddenId
   layers:
   - Default
   - TransparentFX

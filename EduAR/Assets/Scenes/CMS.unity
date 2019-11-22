@@ -1060,6 +1060,8 @@ MonoBehaviour:
   figurePropertiesParent: {fileID: 1242277776}
   questionsPrefabParent: {fileID: 0}
   resetPanel: {fileID: 0}
+  hiddenIndex: 0
+  hiddenScenarioFigureId: 0
 --- !u!1 &125554341
 GameObject:
   m_ObjectHideFlags: 0
@@ -6446,7 +6448,7 @@ GameObject:
   - component: {fileID: 1242277779}
   - component: {fileID: 1242277778}
   m_Layer: 5
-  m_Name: Background grid
+  m_Name: FigureContainerPanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

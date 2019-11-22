@@ -137,10 +137,6 @@ public class PanelHandler : MonoBehaviour {
 
     }
 
-    public void EditScenario(Text hiddenId) {
-        translator.LoadScenarioDetails(hiddenId);
-    }
-
     /// <summary>
     /// Converts string to Panel enum
     /// </summary>
