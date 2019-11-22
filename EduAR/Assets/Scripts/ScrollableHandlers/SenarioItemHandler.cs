@@ -16,4 +16,9 @@ public class SenarioItemHandler : MonoBehaviour {
         panelHandler.SwitchPanel("CreateScenario");
         translator.LoadScenarioDetails(hiddenId.GetComponent<Text>());
     }
+
+    public void DeleteScenario(GameObject hiddenId) {
+        DBConnector.DeleteScenarioFunc((successful) => { }, int.Parse(hiddenId.GetComponent<Text>().text));
+        Destroy(this.gameObject);
+    }
 }

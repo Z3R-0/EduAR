@@ -98,6 +98,13 @@ public class PanelHandler : MonoBehaviour {
         }
     }
 
+    public void LogOut() {
+        panels[(int)CurrentPanel()].SetActive(false);
+        ClosePopUp(PopUp.Menu);
+        RunPopUp(PopUp.LogIn);
+        Teacher.currentTeacher = null;
+    }
+
     /// <summary>
     /// Returns a list of all currently active pop ups
     /// </summary>
@@ -135,10 +142,6 @@ public class PanelHandler : MonoBehaviour {
         // show new panel
         panels[(int)StringEnumDecoder(panel)].SetActive(true);
 
-    }
-
-    public void EditScenario(Text hiddenId) {
-        translator.LoadScenarioDetails(hiddenId);
     }
 
     /// <summary>

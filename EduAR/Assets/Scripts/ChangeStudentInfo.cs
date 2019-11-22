@@ -10,6 +10,11 @@ public class ChangeStudentInfo : MonoBehaviour {
         studentErrorBuffer = GameObject.Find("StudentListErrorBuffer").GetComponent<Text>();
     }
 
+    public void DeleteStudent(InputField studentId) {
+        DBConnector.DeleteStudentFunc((successful) => { }, int.Parse(studentId.text));
+        Destroy(this.gameObject);
+    }
+
     public void ChangeStudentInfoFunc(InputField field) {
         studentErrorBuffer.text = "";
         foreach (object student in Student.Students) {
