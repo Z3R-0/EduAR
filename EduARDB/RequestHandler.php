@@ -95,12 +95,12 @@ class RequestHandler
 
 	public function createOrUpdate($query, $type = null)
 	{
-		$this->execTransaction($query);
+		return $this->execTransaction($query);
 	}
 
 	public function delete($query, $type = null)
 	{
-		$this->execTransaction($query);
+		return $this->execTransaction($query);
 	}
 
 	private function execTransaction($query) {
@@ -126,19 +126,4 @@ class RequestHandler
 			}
 		}
 	}
-
-	//				switch ($type) {
-//					case 'User':
-//						$user = new User($this->conn);
-//						return $user->$method($query);
-//						break;
-//
-//					case 'Scenario' :
-//						$scenario = new Scenario($this->conn);
-//						return $scenario->$method($query);
-//						break;
-//
-//					default :
-//						throw new \Exception("Type " . $type . " not found.");
-//				}
 }
