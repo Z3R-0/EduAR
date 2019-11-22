@@ -71,7 +71,7 @@ class RequestHandler
 		}
 	}
 
-	public function update($query, $type = null)
+	public function update($query, $options = null)
 	{
 		if(preg_match('/password = \'(.*?)\'/', $query, $match) !== false) {
 			$pass = hash('sha256', $match[1]);
@@ -95,6 +95,15 @@ class RequestHandler
 
 	public function createOrUpdate($query, $type = null)
 	{
+		$this->execTransaction($query);
+	}
+
+	public function delete($query, $type = null)
+	{
+		$this->execTransaction($query);
+	}
+
+	private function execTransaction($query) {
 		$queries = explode(";", $query);
 
 		if(count($queries) > 1 && !empty($queries[1])) {
@@ -115,15 +124,6 @@ class RequestHandler
 			} else {
 				return $this->conn->lastInsertId();
 			}
-		}
-	}
-
-	public function delete($query, $type = null)
-	{
-		if ($this->conn->exec($query) === false) {
-			return "Error occurred while trying to execute query";
-		} else {
-			return "User successfully removed";
 		}
 	}
 
