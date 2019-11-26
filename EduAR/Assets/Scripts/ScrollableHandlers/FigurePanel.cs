@@ -41,6 +41,9 @@ public class FigurePanel : MonoBehaviour {
         Invoke(nameof(FigurePanel.resetPanels), resetDelay);
     }
 
+    /// <summary>
+    /// (Only call this using Invoke with a delay) Reset panels to avoid strange glitching. Unity is weird ¯\_(ツ)_/¯
+    /// </summary>
     private void resetPanels() {
         if (this.gameObject.name != "MainCanvas") {
             resetPanel.SetActive(false);
@@ -48,6 +51,9 @@ public class FigurePanel : MonoBehaviour {
         }
     }
 
+    /// <summary>
+    /// Same as above but for use in other scripts (Invoke doesn't work if the function being invoked is in another script)
+    /// </summary>
     public void resetPanelsFunc() {
         Invoke(nameof(FigurePanel.resetPanels), resetDelay);
     }
@@ -85,6 +91,11 @@ public class FigurePanel : MonoBehaviour {
         return answer;
     }
 
+    /// <summary>
+    /// Updates a FigurePanel and its variables to hold the text that was entered into the different inputfields
+    /// </summary>
+    /// <param name="panel">FigurePanel to update</param>
+    /// <returns>Updated version of panel</returns>
     public FigurePanel UpdateParameters(FigurePanel panel) {
         questionsAndAnswers.Clear();
         Dictionary<InputField, bool> answers = new Dictionary<InputField, bool>();

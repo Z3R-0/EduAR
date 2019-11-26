@@ -41,14 +41,19 @@ public class UITranslator : MonoBehaviour {
     private List<string> addStudentStrings = new List<string>(new string[] { "name", "pincode", "class_id" });
 
     private void Start() {
+        // Set necessary references
         panelHandler = DBConnector.MainCanvas.GetComponent<PanelHandler>();
         figurePanelRef = DBConnector.MainCanvas.GetComponent<FigurePanel>();
+        // Initialize lists 
         propertiesPanels = new Dictionary<GameObject, FigurePanel>();
         toBeRemovedPanels = new Dictionary<GameObject, FigurePanel>();
         if (Scenario.CurrentScenarioFigures == null)
             Scenario.CurrentScenarioFigures = new List<ScenarioFigure>();
     }
 
+    /// <summary>
+    /// Clear all lists containing information of current scenario info. Call this when opening a new scenario (new, empty or otherwise)
+    /// </summary>
     public void Clear() {
         if (Scenario.CurrentScenarioFigures != null)
             Scenario.CurrentScenarioFigures.Clear();
@@ -69,6 +74,9 @@ public class UITranslator : MonoBehaviour {
         propertiesPanels.Remove(panel);
     }
 
+    /// <summary>
+    /// Adds a student to the database and student list
+    /// </summary>
     public void AddStudent() {
         Dictionary<string, object> info = GetStudentAddValues();
 
@@ -111,13 +119,20 @@ public class UITranslator : MonoBehaviour {
         return result;
     }
 
+    /// <summary>
+    /// Adds a new ScenarioFigure to the current scenario, adding all required info to it
+    /// </summary>
+    /// <param name="hiddenFigureId">ID of the Figure this ScenarioFigure is based on</param>
+    /// <param name="figure">Existing ScenarioFigure to copy into the scenario</param>
+    /// <returns></returns>
     public GameObject AddFigure(string hiddenFigureId, ScenarioFigure figure = null) {
         ScenarioFigure temp = null;
         string image = "";
 
+        // Get values from the Figure to add to this ScenarioFigure
         foreach (Figure f in Figure.FigureList) {
             if (f.Id == int.Parse(hiddenFigureId)) {
-
+                
                 if (figure != null)
                     temp = figure;
                 else
@@ -125,6 +140,8 @@ public class UITranslator : MonoBehaviour {
                 image = f.Image;
             }
         }
+
+        
         Scenario.CurrentScenarioFigures.Add(temp);
         GameObject newPanel = figurePanelRef.InstantiatePanel();
         if (figure != null) {
@@ -151,6 +168,9 @@ public class UITranslator : MonoBehaviour {
         figurePanelRef.InstantiateAnswer(parentQuestion);
     }
 
+    /// <summary>
+    /// Function that is called when the Save button is pressed. Gets all inputted information and formats it for inserting into the database
+    /// </summary>
     public void SaveScenarioButtonFunc() {
         List<Dictionary<ScenarioQuestion, List<ScenarioAnswer>>> scenarioQnA = new List<Dictionary<ScenarioQuestion, List<ScenarioAnswer>>>();
         Dictionary<GameObject, FigurePanel> currentFigurePanels = new Dictionary<GameObject, FigurePanel>();
@@ -163,10 +183,12 @@ public class UITranslator : MonoBehaviour {
             return;
         }
 
+        // Get all the text from inputfields
         foreach (var panel in propertiesPanels) {
             currentFigurePanels[panel.Key] = panel.Value.UpdateParameters(panel.Value);
         }
 
+        // Get any IDs of existing questions and answers and additional database information
         foreach (var panel in currentFigurePanels) {
             scenarioQnA.Add(QnATranslator(panel.Value));
         }
@@ -192,6 +214,11 @@ public class UITranslator : MonoBehaviour {
         }, scenarioQnA, scenarioNameInputField.text, available, Teacher.currentTeacher.Class_ID, (StoryType)scenarioStoryTypeDropDown.value, hiddenId);
     }
 
+    /// <summary>
+    /// Gets hidden values and additional info of a scenario necessary for updating the database
+    /// </summary>
+    /// <param name="fp">FigurePanel to use for formatting information</param>
+    /// <returns></returns>
     private Dictionary<ScenarioQuestion, List<ScenarioAnswer>> QnATranslator(FigurePanel fp) {
         Dictionary<ScenarioQuestion, List<ScenarioAnswer>> result = new Dictionary<ScenarioQuestion, List<ScenarioAnswer>>();
 
@@ -219,6 +246,9 @@ public class UITranslator : MonoBehaviour {
         return result;
     }
 
+    /// <summary>
+    /// Initializes the list on the left of the create scenario window, containing all figures that can be added to a scenario
+    /// </summary>
     public void LoadFigureList() {
         Figure.FigureList.Clear();
         DBConnector.GetFigureData((callback) => {
@@ -229,6 +259,10 @@ public class UITranslator : MonoBehaviour {
         });
     }
 
+    /// <summary>
+    /// Update the figure list to contain all its info from the database
+    /// </summary>
+    /// <param name="f"></param>
     private void InstantiateFigureList(Figure f) {
         GameObject instance = Instantiate(FigureListPrefab, FigurePrefabParent);
         foreach (Transform go in instance.transform) {
@@ -241,9 +275,14 @@ public class UITranslator : MonoBehaviour {
         }
     }
 
+    /// <summary>
+    /// Load an existing scenario
+    /// </summary>
+    /// <param name="hiddenScenarioId">ID of the scenario to load (found in each scenario list item prefab)</param>
     public void LoadScenarioDetails(Text hiddenScenarioId) {
         hiddenScenarioIdField.text = hiddenScenarioId.text;
         Clear();
+
         if (hiddenScenarioId.text == "" || hiddenScenarioId == null) {
             scenarioAvailableToggle.isOn = true;
             scenarioNameInputField.text = "";
@@ -292,6 +331,11 @@ public class UITranslator : MonoBehaviour {
         }
     }
 
+    /// <summary>
+    /// Initializes a figures and then its questions and answers
+    /// </summary>
+    /// <param name="figure">Figure to instantiate</param>
+    /// <param name="QuestionsAndAnswers">Dictionary of questions and answers to instantiate</param>
     private void InitializeScenarioFigure(ScenarioFigure figure, Dictionary<ScenarioQuestion, List<ScenarioAnswer>> QuestionsAndAnswers) {
         GameObject newPanel = AddFigure(figure.Figure_Id.ToString(), figure);
         FigurePanel fp = newPanel.GetComponent<FigurePanel>();
