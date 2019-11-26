@@ -93,7 +93,6 @@ public class UITranslator : MonoBehaviour {
                     inputs[0].text = properties[(int)StudentProperties.Name].GetValue(student, null).ToString();
                     inputs[1].text = properties[(int)StudentProperties.Pincode].GetValue(student, null).ToString();
                     texts[2].text = properties[(int)StudentProperties.Id].GetValue(student, null).ToString();
-                    texts[3].text = properties[(int)StudentProperties.Name].GetValue(student, null).ToString();
                 }, isTeacher: false, studentName: (string)info[addStudentStrings[0]]);
                 panelHandler.CloseAddStudent();
             } else {

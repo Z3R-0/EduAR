@@ -19,7 +19,7 @@ public class StudentListHandler : MonoBehaviour {
         }
     }
 
-    private void InitializeStudentList() {
+    public void InitializeStudentList() {
         DBConnector.GetUserData((callback) => {
             foreach (var student in callback) {
                 Student.Students.Add(student);
@@ -32,7 +32,7 @@ public class StudentListHandler : MonoBehaviour {
             }
 
             Clear();
-
+            
             foreach (var student in callback) {
                 Student.Students.Add(student);
                 PropertyInfo[] info = student.GetType().GetProperties();
@@ -43,5 +43,10 @@ public class StudentListHandler : MonoBehaviour {
                 inputs[2].text = info[(int)StudentProperties.Id].GetValue(student, null).ToString();
             }
         }, isTeacher: false, class_ID: Teacher.currentTeacher.Class_ID);
+    }
+
+    public void ResetStudents() {
+        Invoke(nameof(InitializeStudentList), 0.03f);
+        Invoke(nameof(InitializeStudentList), 1f);
     }
 }
