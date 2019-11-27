@@ -5,7 +5,7 @@ using UnityEngine;
 public class FigurePanelClearer : MonoBehaviour {
     private UITranslator translator;
 
-    private void Start() {
+    private void Awake() {
         translator = DBConnector.MainCanvas.GetComponent<UITranslator>();
     }
 
