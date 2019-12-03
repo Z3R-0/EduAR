@@ -31,12 +31,11 @@ public class FigurePanel : MonoBehaviour {
     }
 
     public void DestroyPanel(GameObject panel) {
-        Debug.Log(panel);
-        if(panel.GetComponentInChildren<QuestionListHandler>().gameObject.GetComponentInChildren<Slider>().gameObject.GetComponent<Text>().text == "")
+        if(panel.GetComponentInChildren<QuestionListHandler>() == null || panel.GetComponentInChildren<QuestionListHandler>().gameObject.GetComponentInChildren<Slider>().gameObject.GetComponent<Text>().text == "")
             DBConnector.MainCanvas.GetComponent<UITranslator>().RemoveNewPanel(panel);
         else
             DBConnector.MainCanvas.GetComponent<UITranslator>().RemoveExistingPanel(panel);
-        Scenario.CurrentScenarioFigures.RemoveAt(panel.GetComponent<FigurePanel>().hiddenIndex);
+        Scenario.CurrentScenarioFigures.Remove(panel.GetComponent<FigurePanel>().hiddenIndex);
         Destroy(panel);
         Invoke(nameof(FigurePanel.resetPanels), resetDelay);
     }
