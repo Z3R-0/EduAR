@@ -48,7 +48,7 @@ public class UITranslator : MonoBehaviour {
         propertiesPanels = new Dictionary<GameObject, FigurePanel>();
         toBeRemovedPanels = new Dictionary<GameObject, FigurePanel>();
         if (Scenario.CurrentScenarioFigures == null)
-            Scenario.CurrentScenarioFigures = new List<ScenarioFigure>();
+            Scenario.CurrentScenarioFigures = new Dictionary<int, ScenarioFigure>();
     }
 
     /// <summary>
@@ -57,6 +57,7 @@ public class UITranslator : MonoBehaviour {
     public void Clear() {
         if (Scenario.CurrentScenarioFigures != null)
             Scenario.CurrentScenarioFigures.Clear();
+        hiddenScenarioIdField.text = "";
         figuresWithQnA.Clear();
         propertiesPanels.Clear();
         GameObject[] extFigures = GameObject.FindGameObjectsWithTag("ScenarioFigure");
@@ -140,9 +141,8 @@ public class UITranslator : MonoBehaviour {
                 image = f.Image;
             }
         }
-
         
-        Scenario.CurrentScenarioFigures.Add(temp);
+        Scenario.CurrentScenarioFigures.Add(FigurePanel.currentIndex, temp);
         GameObject newPanel = figurePanelRef.InstantiatePanel();
         if (figure != null) {
             newPanel.GetComponentInChildren<Slider>().GetComponent<Text>().text = figure.Id.ToString();
@@ -280,8 +280,8 @@ public class UITranslator : MonoBehaviour {
     /// </summary>
     /// <param name="hiddenScenarioId">ID of the scenario to load (found in each scenario list item prefab)</param>
     public void LoadScenarioDetails(Text hiddenScenarioId) {
-        hiddenScenarioIdField.text = hiddenScenarioId.text;
         Clear();
+        hiddenScenarioIdField.text = hiddenScenarioId.text;
 
         if (hiddenScenarioId.text == "" || hiddenScenarioId == null) {
             scenarioAvailableToggle.isOn = true;

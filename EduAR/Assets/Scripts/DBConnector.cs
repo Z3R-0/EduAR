@@ -846,9 +846,9 @@ public class DBConnector : MonoBehaviour {
     private static string ScenarioQueryBuilder(int scenarioId, List<Dictionary<ScenarioQuestion, List<ScenarioAnswer>>> QnA) {
         string query = "SET @scenario_id=" + scenarioId + ";";
         int QnAIndex = 0;
-        foreach (ScenarioFigure f in Scenario.CurrentScenarioFigures) {
-            query += "INSERT INTO scenario_figure (id, scenario_id, figure_id, task, information) VALUES(" + f.Id + ", @scenario_id, " + f.Figure_Id + ", '" + f.Task + "', '" + f.Information + "')" +
-                    "ON DUPLICATE KEY UPDATE id = " + f.Id + ", scenario_id = @scenario_id, figure_id = " + f.Figure_Id + ", task = '" + f.Task + "', information = '" + f.Information + "';" +
+        foreach (var scenarioFigure in Scenario.CurrentScenarioFigures) {
+            query += "INSERT INTO scenario_figure (id, scenario_id, figure_id, task, information) VALUES(" + scenarioFigure.Value.Id + ", @scenario_id, " + scenarioFigure.Value.Figure_Id + ", '" + scenarioFigure.Value.Task + "', '" + scenarioFigure.Value.Information + "')" +
+                    "ON DUPLICATE KEY UPDATE id = " + scenarioFigure.Value.Id + ", scenario_id = @scenario_id, figure_id = " + scenarioFigure.Value.Figure_Id + ", task = '" + scenarioFigure.Value.Task + "', information = '" + scenarioFigure.Value.Information + "';" +
                     "SET @scenario_figure_id = LAST_INSERT_ID();";
             foreach (var question in QnA[QnAIndex]) {
                 query += "INSERT INTO scenario_question (id, scenario_figure_id, question_text) VALUES(" + question.Key.Id + ", @scenario_figure_id, '" + question.Key.Question_Text + "')" +

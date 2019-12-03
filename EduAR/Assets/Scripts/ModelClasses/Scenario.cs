@@ -19,7 +19,7 @@ public enum ScenarioProperties {
 
 public class Scenario {
     public static IList<object> Scenarios;
-    public static List<ScenarioFigure> CurrentScenarioFigures;
+    public static Dictionary<int, ScenarioFigure> CurrentScenarioFigures;
 
     public int Id { get; set; }
     public string Name { get; set; }
