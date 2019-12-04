@@ -41,6 +41,6 @@ public class ScenarioListHandler : MonoBehaviour {
                 texts[0].text = info[(int)ScenarioProperties.Name].GetValue(scenario, null).ToString();
                 texts[1].text = info[(int)ScenarioProperties.Id].GetValue(scenario, null).ToString();
             }
-        }, classID: Teacher.currentTeacher.Class_ID);
+        }, classID: Student.currentStudent.Class_ID);
     }
 }

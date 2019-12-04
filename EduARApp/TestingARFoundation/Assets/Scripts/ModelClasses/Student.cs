@@ -9,6 +9,7 @@ public enum StudentProperties {
 
 public class Student {
     public static IList<object> Students;
+    public static Student currentStudent;
 
     public int Id { get; set; }
     public string Name { get; set; }

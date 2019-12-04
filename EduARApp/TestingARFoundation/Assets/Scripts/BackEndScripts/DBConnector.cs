@@ -26,10 +26,8 @@ public class DBConnector : MonoBehaviour {
     private int logInAttempts = 0;
     private static int WebRequestAttempts = 0;
     private static int MaxWebRequestAttempts = 20;
-
-    private GameObject ErrorBufferGO;
+    
     private PanelHandler panelHandler;
-    private UITranslator translator;
 
     public static GameObject MainCanvas;
 
@@ -59,19 +57,6 @@ public class DBConnector : MonoBehaviour {
 
         // Create secret IV
         iv = new byte[16] { 0x1, 0x4, 0x7, 0x2, 0x5, 0x8, 0x3, 0x6, 0x9, 0x4, 0x7, 0x10, 0x5, 0x8, 0x11, 0x6 };
-    }
-
-    private void Start() {
-        // initialize panel handler
-        panelHandler = MainCanvas.GetComponent<PanelHandler>();
-        translator = MainCanvas.GetComponent<UITranslator>();
-        ErrorBufferGO = GameObject.Find("ErrorBuffer");
-
-
-        // initialize static list of all students within class
-        Student.Students = new List<object>();
-        Scenario.Scenarios = new List<object>();
-        translator.LoadFigureList();
     }
 
     #region Database Interface Getter Functions
@@ -114,60 +99,12 @@ public class DBConnector : MonoBehaviour {
         return Instance.StartCoroutine(StringToObject(callback, data, type));
     }
 
-    public static Coroutine GetMaxScenarioIdFunc(Action<int> callback) {
-        return Instance.StartCoroutine(GetMaxScenarioId(callback));
-    }
-
-    #endregion
-
-    #region Database Interface Poster Functions
-
-    public static Coroutine CreateTeacherFunc(Action<bool> successful, string name, string email, string password, int classID) {
-        return Instance.StartCoroutine(CreateTeacher(successful, name, email, password, classID));
-    }
-
-    public static Coroutine CreateStudentFunc(Action<bool> successful, string name, string pincode, int classID) {
-        return Instance.StartCoroutine(CreateStudent(successful, name, pincode, classID));
-    }
-
-    public static Coroutine CreateClassFunc(Action<bool> successful, string classCode, string name) {
-        return Instance.StartCoroutine(CreateClass(successful, classCode, name));
-    }
-
     #endregion
 
     #region Database Interface Updater Functions
 
     public static Coroutine UpdateStudentFunc(Action<bool> successful, int id, string name, int pincode, int classID) {
         return Instance.StartCoroutine(UpdateStudent(successful, id, name, pincode, classID));
-    }
-
-    #endregion
-
-    #region Database Interface UpdateOrCreate Functions
-
-    public static Coroutine SaveScenarioContentFunc(Action<bool> successful, List<Dictionary<ScenarioQuestion, List<ScenarioAnswer>>> QnA, string name, int available, int classID, StoryType storytype, int? id = null) {
-        return Instance.StartCoroutine(SaveScenarioContent(successful, QnA, name, available, classID, storytype, id));
-    }
-
-    public static Coroutine SaveScenarioFunc(Action<int> successful, string name, int available, int classID, StoryType storytype, int? id = null) {
-        return Instance.StartCoroutine(SaveScenario(successful, name, available, classID, storytype, id));
-    }
-
-    #endregion
-
-    #region Database Interface Deleter Functions
-
-    public static Coroutine DeleteScenarioContentFunc(Action<bool> successful, Dictionary<GameObject, FigurePanel> toBeRemovedPanels) {
-        return Instance.StartCoroutine(DeleteScenarioContent(successful, toBeRemovedPanels));
-    }
-
-    public static Coroutine DeleteScenarioFunc(Action<bool> successful, int scenarioId) {
-        return Instance.StartCoroutine(DeleteScenario(successful, scenarioId));
-    }
-
-    public static Coroutine DeleteStudentFunc(Action<bool> successful, int studentId) {
-        return Instance.StartCoroutine(DeleteStudent(successful, studentId));
     }
 
     #endregion
@@ -384,76 +321,6 @@ public class DBConnector : MonoBehaviour {
 
     #endregion
 
-    #region Database Posters
-
-    private static IEnumerator CreateTeacher(Action<bool> successful, string name, string email, string password, int classID) {
-        query = "type=User&method=create&query=INSERT INTO teacher " +
-                "(name,email,password,class_id) " +
-                "values('" + name + "','" + email + "','" + password + "'," + classID + ");";
-
-        string encryptedQuery = "&key=" + EncryptString(query, key, iv);
-        UnityWebRequest teacher_create = UnityWebRequest.Get(dbUrl + query + encryptedQuery);
-        yield return teacher_create.SendWebRequest();
-
-        if (teacher_create.isNetworkError || teacher_create.isHttpError) {
-            Debug.LogError("Error occurred: " + teacher_create.error);
-            if (responseCodes.Contains(teacher_create.responseCode) && WebRequestAttempts <= MaxWebRequestAttempts) {
-                ++WebRequestAttempts;
-                CreateTeacherFunc(successful, name, email, password, classID);
-            } else
-                successful(false);
-        } else {
-            WebRequestAttempts = 0;
-            successful(true);
-        }
-    }
-
-    private static IEnumerator CreateStudent(Action<bool> successful, string name, string pincode, int classID) {
-        query = "type=User&method=create&query=INSERT INTO student " +
-                "(name,pincode,class_id) " +
-                "values('" + name + "'," + pincode + "," + classID + ");";
-
-        string encryptedQuery = "&key=" + EncryptString(query, key, iv);
-        UnityWebRequest student_create = UnityWebRequest.Get(dbUrl + query + encryptedQuery);
-        yield return student_create.SendWebRequest();
-
-        if (student_create.isNetworkError || student_create.isHttpError) {
-            Debug.LogError("Error occurred: " + student_create.error);
-            if (responseCodes.Contains(student_create.responseCode) && WebRequestAttempts <= MaxWebRequestAttempts) {
-                ++WebRequestAttempts;
-                CreateStudentFunc(successful, name, pincode, classID);
-            } else
-                successful(false);
-        } else {
-            WebRequestAttempts = 0;
-            successful(true);
-        }
-    }
-
-    private static IEnumerator CreateClass(Action<bool> successful, string classCode, string name) {
-        query = "type=Class&method=create&query=INSERT INTO class" +
-                "(classcode, name)" +
-                "values('" + classCode + "','" + name + "');";
-
-        string encryptedQuery = "&key=" + EncryptString(query, key, iv);
-        UnityWebRequest class_create = UnityWebRequest.Get(dbUrl + query + encryptedQuery);
-        yield return class_create.SendWebRequest();
-
-        if (class_create.isNetworkError || class_create.isHttpError) {
-            Debug.LogError("Error occurred: " + class_create.error);
-            if (responseCodes.Contains(class_create.responseCode) && WebRequestAttempts <= MaxWebRequestAttempts) {
-                ++WebRequestAttempts;
-                CreateClassFunc(successful, classCode, name);
-            } else
-                successful(false);
-        } else {
-            WebRequestAttempts = 0;
-            successful(true);
-        }
-    }
-
-    #endregion
-
     #region Database Updaters
 
     private static IEnumerator UpdateStudent(Action<bool> successful, int id, string name, int pincode, int classID) {
@@ -470,164 +337,6 @@ public class DBConnector : MonoBehaviour {
             if (responseCodes.Contains(student_update.responseCode) && WebRequestAttempts <= MaxWebRequestAttempts) {
                 ++WebRequestAttempts;
                 UpdateStudentFunc(successful, id, name, pincode, classID);
-            } else
-                successful(false);
-        } else {
-            WebRequestAttempts = 0;
-            successful(true);
-        }
-    }
-
-    #endregion
-
-    #region Database UpdateOrCreators
-
-    private static IEnumerator SaveScenario(Action<int> callback, string name, int available, int classID, StoryType storytype, int? id = null) {
-        if (id == null)
-            yield return GetMaxScenarioIdFunc((temp) => { id = temp; });
-
-        query = "type=Scenario&method=createOrUpdate&query=INSERT INTO scenario (id, name, available, class_id, storytype)" +
-                "VALUES (" + id + ", '" + name + "'," + available + "," + classID + ",'" + storytype + "') ON DUPLICATE KEY " +
-                "UPDATE id = LAST_INSERT_ID(id), name = '" + name + "', available = " + available + ", class_id = " + classID + ", storytype = '" + storytype + "';";
-
-        string encryptedQuery = "&key=" + EncryptString(query, key, iv);
-        UnityWebRequest scenario_updateOrCreate = UnityWebRequest.Get(dbUrl + query + encryptedQuery);
-        yield return scenario_updateOrCreate.SendWebRequest();
-
-        if (scenario_updateOrCreate.isNetworkError || scenario_updateOrCreate.isHttpError) {
-            Debug.LogError("Error occurred: " + scenario_updateOrCreate.error);
-            if (responseCodes.Contains(scenario_updateOrCreate.responseCode) && WebRequestAttempts <= MaxWebRequestAttempts) {
-                ++WebRequestAttempts;
-                SaveScenarioFunc(callback, name, available, classID, storytype, id);
-            }
-        } else {
-            WebRequestAttempts = 0;
-            callback(int.Parse(Regex.Replace(scenario_updateOrCreate.downloadHandler.text, "[^0-9]+", string.Empty)));
-        }
-    }
-
-    private static IEnumerator SaveScenarioContent(Action<bool> successful, List<Dictionary<ScenarioQuestion, List<ScenarioAnswer>>> QnA, string name, int available, int classID, StoryType storytype, int? id = null) {
-        int? scenarioId = null;
-        WWWForm form = new WWWForm();
-
-        yield return SaveScenarioFunc((callback) => {
-            scenarioId = callback;
-        }, name, available, classID, storytype, id);
-
-        if (scenarioId != null) {
-            form.AddField("type", "Figure");
-            form.AddField("method", "createOrUpdate");
-            query = ScenarioQueryBuilder((int)scenarioId, QnA);
-            form.AddField("query", query);
-            form.AddField("key", EncryptString(query, key, iv));
-
-            UnityWebRequest figure_createOrUpdate = UnityWebRequest.Post(dbUrl, form);
-            figure_createOrUpdate.chunkedTransfer = false;
-            yield return figure_createOrUpdate.SendWebRequest();
-
-            if (figure_createOrUpdate.isNetworkError || figure_createOrUpdate.isHttpError) {
-                Debug.LogError("Error occurred: " + figure_createOrUpdate.error);
-                Debug.Log(figure_createOrUpdate.downloadHandler.text);
-                if (responseCodes.Contains(figure_createOrUpdate.responseCode) && WebRequestAttempts <= MaxWebRequestAttempts) {
-                    ++WebRequestAttempts;
-                    SaveScenarioContentFunc(successful, QnA, name, available, classID, storytype, id);
-                } else
-                    successful(false);
-            } else {
-                WebRequestAttempts = 0;
-                successful(true);
-            }
-        } else {
-            Debug.LogError("Scenario ID could not be set, probably due to a network error");
-        }
-    }
-
-    private static IEnumerator GetMaxScenarioId(Action<int> callback) {
-        query = "type=ScenarioAI&method=get&query=SELECT `AUTO_INCREMENT` FROM INFORMATION_SCHEMA.TABLES " +
-                "WHERE TABLE_SCHEMA = 'id11398216_eduar' AND TABLE_NAME = 'scenario';";
-
-        string encryptedQuery = "&key=" + EncryptString(query, key, iv);
-        UnityWebRequest autoincrement_get = UnityWebRequest.Get(dbUrl + query + encryptedQuery);
-        yield return autoincrement_get.SendWebRequest();
-
-        if (autoincrement_get.isNetworkError || autoincrement_get.isHttpError) {
-            Debug.LogError("Error occurred: " + autoincrement_get.error);
-            if (responseCodes.Contains(autoincrement_get.responseCode) && WebRequestAttempts <= MaxWebRequestAttempts) {
-                ++WebRequestAttempts;
-                GetMaxScenarioIdFunc(callback);
-            }
-        } else {
-            WebRequestAttempts = 0;
-            callback(int.Parse(Regex.Replace(autoincrement_get.downloadHandler.text, "[^0-9]+", string.Empty)));
-        }
-    }
-
-    #endregion
-
-    #region Database Deleters
-
-    private static IEnumerator DeleteScenario(Action<bool> successful, int scenarioId) {
-        query = "type=Scenario&method=delete&query=";
-
-        query += "DELETE FROM scenario WHERE id = " + scenarioId + ";";
-
-        string encryptedQuery = "&key=" + EncryptString(query, key, iv);
-        UnityWebRequest scenario_delete = UnityWebRequest.Get(dbUrl + query + encryptedQuery);
-        yield return scenario_delete.SendWebRequest();
-
-        if (scenario_delete.isNetworkError || scenario_delete.isHttpError) {
-            Debug.LogError("Error occurred: " + scenario_delete.error);
-            if (responseCodes.Contains(scenario_delete.responseCode) && WebRequestAttempts <= MaxWebRequestAttempts) {
-                ++WebRequestAttempts;
-                DeleteScenarioFunc(successful, scenarioId);
-            } else
-                successful(false);
-        } else {
-            WebRequestAttempts = 0;
-            successful(true);
-        }
-    }
-
-    private static IEnumerator DeleteStudent(Action<bool> successful, int studentId) {
-        query = "type=Student&method=delete&query=";
-
-        query += "DELETE FROM student WHERE id = " + studentId + ";";
-
-        string encryptedQuery = "&key=" + EncryptString(query, key, iv);
-        UnityWebRequest student_delete = UnityWebRequest.Get(dbUrl + query + encryptedQuery);
-        yield return student_delete.SendWebRequest();
-
-        if (student_delete.isNetworkError || student_delete.isHttpError) {
-            Debug.LogError("Error occurred: " + student_delete.error);
-            if (responseCodes.Contains(student_delete.responseCode) && WebRequestAttempts <= MaxWebRequestAttempts) {
-                ++WebRequestAttempts;
-                DeleteStudentFunc(successful, studentId);
-            } else
-                successful(false);
-        } else {
-            WebRequestAttempts = 0;
-            successful(true);
-        }
-    }
-
-    private static IEnumerator DeleteScenarioContent(Action<bool> successful, Dictionary<GameObject, FigurePanel> toBeRemovedPanels) {
-        WWWForm form = new WWWForm();
-
-        form.AddField("type", "Figure");
-        form.AddField("method", "delete");
-        query = DeleteScenarioQueryBuilder(toBeRemovedPanels);
-        form.AddField("query", query);
-        form.AddField("key", EncryptString(query, key, iv));
-
-        UnityWebRequest figure_delete = UnityWebRequest.Post(dbUrl, form);
-        figure_delete.chunkedTransfer = false;
-        yield return figure_delete.SendWebRequest();
-
-        if (figure_delete.isNetworkError || figure_delete.isHttpError) {
-            Debug.LogError("Error occurred: " + figure_delete.error);
-            if (responseCodes.Contains(figure_delete.responseCode) && WebRequestAttempts <= MaxWebRequestAttempts) {
-                ++WebRequestAttempts;
-                DeleteScenarioContentFunc(successful, toBeRemovedPanels);
             } else
                 successful(false);
         } else {
@@ -675,60 +384,6 @@ public class DBConnector : MonoBehaviour {
         } else {
             callback(JSONDecoder(converter_info.downloadHandler.text, type));
         }
-    }
-
-    public void LogIn() {
-        string email = GameObject.Find("EmailInputField").GetComponent<InputField>().text;
-        string password = GameObject.Find("PasswordInputField").GetComponent<InputField>().text;
-        password = ComputeSha256Hash(password);
-
-        // Attempt to find a valid login by searching for the email address
-        GetUserData((callback) => {
-            if (callback == null) {
-                if (logInAttempts <= 3) {
-                    ++logInAttempts;
-                    LogIn();
-                } else {
-                    // Incorrect email error
-                    ErrorBuffer().text = "Incorrect Credentials";
-                    ErrorBuffer().color = Color.red;
-                }
-            } else {
-                foreach (var teacher in callback) {
-                    PropertyInfo[] info = teacher.GetType().GetProperties();
-                    if (email == info[(int)TeacherProperties.Email].GetValue(teacher, null).ToString() && password == info[(int)TeacherProperties.Password].GetValue(teacher, null).ToString()) {
-                        // Correct login detected, set the current teacher
-                        Teacher.currentTeacher = (Teacher)teacher;
-                        GameObject.Find("PasswordInputField").GetComponent<InputField>().text = "";
-                    } else {
-                        // Incorrect password error
-                        ErrorBuffer().text = "Incorrect Credentials";
-                        ErrorBuffer().color = Color.red;
-                    }
-                }
-            }
-        }, teacherEmail: email);
-    }
-
-    public void ResetPassword(InputField field) {
-        string email = null;
-
-        if (field.text == "" || field.text == null) {
-            ErrorBuffer().text = "Fill in an email adress!";
-            ErrorBuffer().color = Color.red;
-        } else
-            ErrorBuffer().text = "";
-
-        // If correct email is entered, send a reset mail to the mail address
-        GetUserData((callback) => {
-            if (callback != null) {
-                foreach (object teacher in callback) {
-                    PropertyInfo[] info = teacher.GetType().GetProperties();
-                    email = info[(int)TeacherProperties.Email].GetValue(teacher, null).ToString();
-                }
-                Application.OpenURL(baseURL + "passwordreset.php?type=mail&email=" + email);
-            }
-        }, teacherEmail: field.text);
     }
 
     static string ComputeSha256Hash(string rawData) {
@@ -839,38 +494,5 @@ public class DBConnector : MonoBehaviour {
 
         // Return the decrypted data as a string
         return plainText;
-    }
-
-    private static string ScenarioQueryBuilder(int scenarioId, List<Dictionary<ScenarioQuestion, List<ScenarioAnswer>>> QnA) {
-        string query = "SET @scenario_id=" + scenarioId + ";";
-        int QnAIndex = 0;
-        foreach (ScenarioFigure f in Scenario.CurrentScenarioFigures) {
-            query += "INSERT INTO scenario_figure (id, scenario_id, figure_id, task, information) VALUES(" + f.Id + ", @scenario_id, " + f.Figure_Id + ", '" + f.Task + "', '" + f.Information + "')" +
-                    "ON DUPLICATE KEY UPDATE id = " + f.Id + ", scenario_id = @scenario_id, figure_id = " + f.Figure_Id + ", task = '" + f.Task + "', information = '" + f.Information + "';" +
-                    "SET @scenario_figure_id = LAST_INSERT_ID();";
-            foreach (var question in QnA[QnAIndex]) {
-                query += "INSERT INTO scenario_question (id, scenario_figure_id, question_text) VALUES(" + question.Key.Id + ", @scenario_figure_id, '" + question.Key.Question_Text + "')" +
-                    "ON DUPLICATE KEY UPDATE id = " + question.Key.Id + ", scenario_figure_id = " + question.Key.Scenario_Figure_Id + ", question_text = '" + question.Key.Question_Text + "';" +
-                    "SET @scenario_question_id = LAST_INSERT_ID();";
-                foreach (ScenarioAnswer a in question.Value) {
-                    query += "INSERT INTO scenario_answer (id, scenario_question_id, answer_text, correct_answer) VALUES(" + a.Id + ", @scenario_question_id, '" + a.Answer_Text + "', " + a.Correct_Answer + ")" +
-                    "ON DUPLICATE KEY UPDATE id = " + a.Id + ", scenario_question_id = " + a.Scenario_Question_Id + ", answer_text = '" + a.Answer_Text + "', correct_answer = " + a.Correct_Answer + ";";
-                }
-            }
-            ++QnAIndex;
-        }
-        return query;
-    }
-
-    private static string DeleteScenarioQueryBuilder(Dictionary<GameObject, FigurePanel> toBeRemovedPanels) {
-        string query = "";
-        foreach(var scenarioFigure in toBeRemovedPanels) {
-            query += "DELETE FROM scenario_figure WHERE id = " + scenarioFigure.Value.hiddenScenarioFigureId + ";";
-        }
-        return query;
-    }
-
-    public Text ErrorBuffer() {
-        return ErrorBufferGO.GetComponent<Text>();
     }
 }
