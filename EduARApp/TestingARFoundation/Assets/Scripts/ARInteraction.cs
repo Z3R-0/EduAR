@@ -33,24 +33,6 @@ public class ARInteraction : MonoBehaviour {
                 }
             }
         }
-
         
-        if(ui.activeInHierarchy && feedbackText.text != "" && (Time.time - text_time == 2.5f)) {
-            feedbackText.text = "";
-        }
-    }
-
-    public void GoButtonPressed() {
-        foreach(Toggle toggle in toggles) {
-            if(toggle.isOn && toggle.CompareTag("Player")) {
-                feedbackText.color = Color.green;
-                feedbackText.text = "Correct!";
-                text_time = Time.time;
-            } else {
-                feedbackText.color = Color.red;
-                feedbackText.text = "Too bad peanutbutter";
-                text_time = Time.time;
-            }
-        }
     }
 }

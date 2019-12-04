@@ -8,12 +8,8 @@ using UnityEngine.UI;
 
 public class ARTapToPlaceObject : MonoBehaviour {
     public GameObject placementIndicator;
+    [NonSerialized]
     public GameObject contentToPlace;
-
-    //public Text raycastText;
-    //public Text poseText;
-    //public Text IndicatorText;
-    //public Text IsValidText;
 
     private ARSessionOrigin arOrigin;
     private ARRaycastManager raycaster;
@@ -44,10 +40,8 @@ public class ARTapToPlaceObject : MonoBehaviour {
         if (placementPoseIsValid) {
             placementIndicator.SetActive(true);
             placementIndicator.transform.SetPositionAndRotation(placementPose.position, placementPose.rotation);
-            //IndicatorText.text = "is active";
         } else {
             placementIndicator.SetActive(false);
-            //IndicatorText.text = "not active";
         }
     }
 
@@ -57,10 +51,8 @@ public class ARTapToPlaceObject : MonoBehaviour {
         raycaster.Raycast(screenCenter, hits, TrackableType.Planes);
 
         placementPoseIsValid = hits.Count > 0;
-        //IsValidText.text = placementPoseIsValid.ToString();
 
         if (placementPoseIsValid) {
-            //raycastText.text = "Sending raycast, hit: " + hits[0].hitType + "\n Hits Count: " + hits.Count;
             placementPose = hits[0].pose;
 
             var cameraForward = Camera.main.transform.forward;

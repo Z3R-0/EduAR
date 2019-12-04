@@ -30,6 +30,7 @@ public class PanelHandler : MonoBehaviour {
         for (int i = 0; i < popupsList.Count; i++) {
             popups.Add((PopUp)i, popupsList[i]);
         }
+        Screen.orientation = ScreenOrientation.Portrait;
     }
     
 
@@ -52,14 +53,14 @@ public class PanelHandler : MonoBehaviour {
     /// <summary>
     /// Used for button OnClick methods to close the menu
     /// </summary>
-    public void CloseMenu() {
+    public void ClosePlayPopUp() {
         popups[PopUp.PlayPopup].SetActive(false);
     }
 
     /// <summary>
     /// Used for button OnClick methods to open the menu
     /// </summary>
-    public void OpenMenu() {
+    public void OpenPlayPopUp() {
         popups[PopUp.PlayPopup].SetActive(true);
     }
 
@@ -98,6 +99,12 @@ public class PanelHandler : MonoBehaviour {
     /// </summary>
     /// <param name="panel">The panel to switch to</param>
     public void SwitchPanel(string panel) {
+        if (panel == "Play") {
+            OpenPlayPopUp();
+            Screen.orientation = ScreenOrientation.Landscape;
+        } else {
+            Screen.orientation = ScreenOrientation.Portrait;
+        }
         // hide current panel
         panels[(int)CurrentPanel()].SetActive(false);
         // show new panel

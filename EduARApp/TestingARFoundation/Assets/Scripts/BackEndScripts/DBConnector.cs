@@ -83,6 +83,10 @@ public class DBConnector : MonoBehaviour {
         return Instance.StartCoroutine(GetScenarioFigure(callback, id, scenario_id, figure_id));
     }
 
+    public static IEnumerator GetScenarioFigureIEnumerator(Action<IList> callback, int? id = null, int? scenario_id = null, int? figure_id = null) {
+        return GetScenarioFigure(callback, id, scenario_id, figure_id);
+    }
+
     public static Coroutine GetQuestionData(Action<IList> callback, int? id = null, int? scenario_figure_id = null) {
         return Instance.StartCoroutine(GetQuestion(callback, id, scenario_figure_id));
     }

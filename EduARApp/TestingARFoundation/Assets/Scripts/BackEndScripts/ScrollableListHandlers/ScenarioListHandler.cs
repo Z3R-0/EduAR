@@ -10,6 +10,12 @@ public class ScenarioListHandler : MonoBehaviour {
     [SerializeField]
     private Transform ScenarioPrefabParent;
 
+    private DatabaseHandler dbHandler;
+
+    private void Start() {
+        dbHandler = DBConnector.MainCanvas.GetComponent<DatabaseHandler>();
+    }
+
     private void OnEnable() {
         InitializeScenarioList();
     }
@@ -23,23 +29,25 @@ public class ScenarioListHandler : MonoBehaviour {
     private void InitializeScenarioList() {
         DBConnector.GetScenarioData((callback) => {
             foreach (var scenario in callback) {
-                Scenario.Scenarios.Add(scenario);
                 PropertyInfo[] info = scenario.GetType().GetProperties();
-                Instantiate(ScenarioListPrefab, ScenarioPrefabParent.transform);
-                Text[] texts = ScenarioListPrefab.GetComponentsInChildren<Text>();
+                GameObject ScenarioItem = Instantiate(ScenarioListPrefab, ScenarioPrefabParent.transform);
+                Text[] texts = ScenarioItem.GetComponentsInChildren<Text>();
                 texts[0].text = info[(int)ScenarioProperties.Name].GetValue(scenario, null).ToString();
                 texts[1].text = info[(int)ScenarioProperties.Id].GetValue(scenario, null).ToString();
+                Button button = ScenarioItem.GetComponent<Button>();
+                button.onClick.AddListener(delegate { dbHandler.OpenScenario(((Scenario)scenario).Id.ToString()); });
             }
 
             Clear();
 
             foreach (var scenario in callback) {
-                Scenario.Scenarios.Add(scenario);
                 PropertyInfo[] info = scenario.GetType().GetProperties();
-                Instantiate(ScenarioListPrefab, ScenarioPrefabParent.transform);
-                Text[] texts = ScenarioListPrefab.GetComponentsInChildren<Text>();
+                GameObject ScenarioItem = Instantiate(ScenarioListPrefab, ScenarioPrefabParent.transform);
+                Text[] texts = ScenarioItem.GetComponentsInChildren<Text>();
                 texts[0].text = info[(int)ScenarioProperties.Name].GetValue(scenario, null).ToString();
                 texts[1].text = info[(int)ScenarioProperties.Id].GetValue(scenario, null).ToString();
+                Button button = ScenarioItem.GetComponent<Button>();
+                button.onClick.AddListener(delegate { dbHandler.OpenScenario(((Scenario)scenario).Id.ToString()); });
             }
         }, classID: Student.currentStudent.Class_ID);
     }

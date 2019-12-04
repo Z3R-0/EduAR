@@ -4,14 +4,15 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public enum Panel {
-    Landing,
-    LogIn,
-    Level,
-    Play
+    StudentList,
+    ScenarioList,
+    CreateScenario
 }
 
 public enum PopUp {
-    PlayPopup
+    LogIn,
+    Menu,
+    AddStudent
 }
 
 public class PanelHandler : MonoBehaviour {
@@ -56,19 +57,33 @@ public class PanelHandler : MonoBehaviour {
     /// <summary>
     /// Used for button OnClick methods to close the menu
     /// </summary>
-    public void ClosePlayPopup() {
-        popups[PopUp.PlayPopup].SetActive(false);
+    public void CloseMenu() {
+        popups[PopUp.Menu].SetActive(false);
     }
 
     /// <summary>
     /// Used for button OnClick methods to open the menu
     /// </summary>
-    public void OpenPlayPopUp() {
-        popups[PopUp.PlayPopup].SetActive(true);
+    public void OpenMenu() {
+        popups[PopUp.Menu].SetActive(true);
+    }
+    
+    /// <summary>
+    /// Used for button OnClick methods to close the add student pop up
+    /// </summary>
+    public void CloseAddStudent() {
+        popups[PopUp.AddStudent].SetActive(false);
+    }
+
+    /// <summary>
+    /// Used for button OnClick methods to open the add student pop up
+    /// </summary>
+    public void OpenAddStudent() {
+        popups[PopUp.AddStudent].SetActive(true);
     }
 
     public void LoggedIn() {
-        ClosePopUp(PopUp.PlayPopup);
+        ClosePopUp(PopUp.LogIn);
         RunPopUp(PopUp.Menu);
     }
 
