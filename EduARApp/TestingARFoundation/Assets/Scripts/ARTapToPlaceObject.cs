@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 public class ARTapToPlaceObject : MonoBehaviour {
     public GameObject placementIndicator;
-    [NonSerialized]
+    
     public GameObject contentToPlace;
 
     private ARSessionOrigin arOrigin;
@@ -31,13 +31,16 @@ public class ARTapToPlaceObject : MonoBehaviour {
         } 
     }
 
-    private void PlaceObject() {
-        Instantiate(contentToPlace, placementPose.position, placementPose.rotation);
+    public void PlaceObject() {
+        GameObject content = Instantiate(contentToPlace, placementPose.position, Quaternion.LookRotation(new Vector3(placementPose.rotation.x, placementPose.rotation.y, placementPose.rotation.z - 85  )));
+        Debug.Log("Content to place = " + contentToPlace);
+        Debug.Log("Placed content = " + content.name);
         isPlaced = true;
     }
 
     private void UpdatePlacementIndicator() {
         if (placementPoseIsValid) {
+            Debug.Log("Found valid placement, placing indicator");
             placementIndicator.SetActive(true);
             placementIndicator.transform.SetPositionAndRotation(placementPose.position, placementPose.rotation);
         } else {
@@ -45,10 +48,12 @@ public class ARTapToPlaceObject : MonoBehaviour {
         }
     }
 
-    private void UpdatePlacementPose() {
+    private void UpdatePlacementPose() { 
         var screenCenter = Camera.main.ViewportToScreenPoint(new Vector3(0.5f, 0.5f));
         var hits = new List<ARRaycastHit>();
         raycaster.Raycast(screenCenter, hits, TrackableType.Planes);
+
+        Debug.Log("Found hits = " + (hits.Count > 0));
 
         placementPoseIsValid = hits.Count > 0;
 

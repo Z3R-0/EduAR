@@ -27,5 +27,7 @@ public class ARSessionHandler : MonoBehaviour {
         ScriptManager.GetComponent<ARInteraction>().enabled = false;
     }
 
-
+    public static void SetContent(GameObject content) {
+        ScriptManager.GetComponent<ARTapToPlaceObject>().contentToPlace = content;
+    }
 }

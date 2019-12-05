@@ -1,5 +1,7 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,16 +13,20 @@ public class DatabaseHandler : MonoBehaviour {
     [SerializeField]
     private Text LogInErrorBuffer;
 
+    public bool LoadingScenario = false;
+
     private static PanelHandler panelHandler;
 
     private static Dictionary<ScenarioFigure, Dictionary<ScenarioQuestion, List<ScenarioAnswer>>> FiguresWithQuestionsAndAnswers = new Dictionary<ScenarioFigure, Dictionary<ScenarioQuestion, List<ScenarioAnswer>>>();
+    private static List<Figure> figureModels = new List<Figure>();
+
+    private string output;
+    private string stack;
+    private string myLog;
+    Vector2 scrollPosition;
 
     private void Awake() {
         panelHandler = GameObject.Find("MainCanvas").GetComponent<PanelHandler>();
-    }
-
-    private void Start() {
-        ARSessionHandler.DisableAR();
     }
 
     /// <summary>
@@ -30,11 +36,12 @@ public class DatabaseHandler : MonoBehaviour {
         string name = nameInputField.text;
         int pinCode = int.Parse(pinCodeInputField.text);
 
+        Debug.Log("Logging in");
         DBConnector.GetUserData((callback) => {
             if (callback == null)   // Incorrect login detected
                 PrintError("Oeps, dat klopt niet", Color.red);
             else {
-                foreach(object student in callback) {
+                foreach (object student in callback) {
                     // Correct login detected, set current student
                     Student.currentStudent = (Student)student;
                     nameInputField.text = "";
@@ -53,19 +60,33 @@ public class DatabaseHandler : MonoBehaviour {
     }
 
     private IEnumerator LoadScenarioCoroutine(int scenarioId) {
+        LoadingScenario = true;
+
         yield return StartCoroutine(DBConnector.GetScenarioFigureIEnumerator((figures) => {
             if (figures != null) {
                 Dictionary<ScenarioQuestion, List<ScenarioAnswer>> QuestionsAndAnswers = new Dictionary<ScenarioQuestion, List<ScenarioAnswer>>();
+                ScenarioFigure lastFigure;
+                ScenarioQuestion lastQuestion;
+                ScenarioAnswer lastAnswer;
 
                 foreach (object scenarioFigure in figures) {
+                    lastFigure = (ScenarioFigure)scenarioFigure;
+
                     DBConnector.GetQuestionData((questions) => {
                         foreach (object question in questions) {
+                            lastQuestion = (ScenarioQuestion)question;
                             DBConnector.GetAnswerData((answers) => {
+
                                 List<ScenarioAnswer> tempAnswers = new List<ScenarioAnswer>();
                                 foreach (object answer in answers) {
+                                    lastAnswer = (ScenarioAnswer)answer;
                                     tempAnswers.Add((ScenarioAnswer)answer);
+
+                                    StartCoroutine(LoadingDelayBecauseAsyncIsFun((isDone) => {
+                                        if (isDone)
+                                            LoadingScenario = false;
+                                    }));
                                 }
-                                Debug.Log("Adding lists");
                                 QuestionsAndAnswers.Add((ScenarioQuestion)question, tempAnswers);
                                 FiguresWithQuestionsAndAnswers.Add((ScenarioFigure)scenarioFigure, QuestionsAndAnswers);
                             }, scenario_question_id: ((ScenarioQuestion)question).Id);
@@ -76,13 +97,35 @@ public class DatabaseHandler : MonoBehaviour {
                 Debug.LogError("no figures were found...");
             }
         }, scenario_id: scenarioId));
-        yield return new WaitForSeconds(3f);
 
-        Debug.Log(FiguresWithQuestionsAndAnswers.Count);
+        while (LoadingScenario)
+            yield return null;
 
-        ARSessionHandler.EnableAR();
+        bool loadingFigures = true;
+
+        foreach (ScenarioFigure scenarioFig in FiguresWithQuestionsAndAnswers.Keys) {
+            yield return DBConnector.GetFigureData((figures) => {
+                int i = 0;
+                foreach (object figure in figures) {
+                    figureModels.Add((Figure)figure);
+                    ++i;
+                    if (i >= figures.Count && scenarioFig.Id == FiguresWithQuestionsAndAnswers.Keys.Last().Id)
+                        loadingFigures = false;
+                }
+            }, id: scenarioFig.Figure_Id);
+        }
+
+        while (loadingFigures)
+            yield return null;
+
+        ARSessionHandler.SetContent(Resources.Load<GameObject>(figureModels[0].Location));
         panelHandler.SwitchPanel(Panel.Play.ToString());
+    }
 
+    private IEnumerator LoadingDelayBecauseAsyncIsFun(Action<bool> isDone) {
+        isDone(false);
+        yield return new WaitForSeconds(1f);
+        isDone(true);
     }
 
     /// <summary>

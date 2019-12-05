@@ -1314,7 +1314,7 @@ GameObject:
   - component: {fileID: 7398025236950978365}
   m_Layer: 0
   m_Name: Dino
-  m_TagString: Untagged
+  m_TagString: ARContent
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1328,7 +1328,7 @@ Transform:
   m_GameObject: {fileID: 4501993073082159188}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_Children:
   - {fileID: 7146966347149477694}
   - {fileID: 6980946311864349125}

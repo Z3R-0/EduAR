@@ -28,7 +28,7 @@ public class ARInteraction : MonoBehaviour {
             RaycastHit raycastHit;
 
             if (Physics.Raycast(raycast, out raycastHit, maxDistance: 1000f)) {
-                if (raycastHit.collider.CompareTag("TestContent")) {
+                if (raycastHit.collider.CompareTag("ARContent")) {
                     ui.SetActive(true);
                 }
             }
