@@ -28,7 +28,7 @@ public class ARTapToPlaceObject : MonoBehaviour {
         UpdatePlacementPose();
         UpdatePlacementIndicator();
 
-        if(placementPoseIsValid && Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began && !isPlaced && !popup.activeInHierarchy) {
+        if(placementPoseIsValid && Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began && !isPlaced) {
             PlaceObject();
         } 
     }
@@ -39,7 +39,7 @@ public class ARTapToPlaceObject : MonoBehaviour {
     }
 
     private void UpdatePlacementIndicator() {
-        if (placementPoseIsValid && !isPlaced) {
+        if (placementPoseIsValid) {
             placementIndicator.SetActive(true);
             placementIndicator.transform.SetPositionAndRotation(placementPose.position, placementPose.rotation);
         } else {
