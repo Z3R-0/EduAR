@@ -11,6 +11,8 @@ public class ARTapToPlaceObject : MonoBehaviour {
     
     public GameObject contentToPlace;
 
+    public GameObject popup;
+
     private ARSessionOrigin arOrigin;
     private ARRaycastManager raycaster;
     private Pose placementPose;
@@ -26,21 +28,18 @@ public class ARTapToPlaceObject : MonoBehaviour {
         UpdatePlacementPose();
         UpdatePlacementIndicator();
 
-        if(placementPoseIsValid && Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began && !isPlaced) {
+        if(placementPoseIsValid && Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began && !isPlaced && !popup.activeInHierarchy) {
             PlaceObject();
         } 
     }
 
     public void PlaceObject() {
         GameObject content = Instantiate(contentToPlace, placementPose.position, Quaternion.LookRotation(new Vector3(placementPose.rotation.x, placementPose.rotation.y, placementPose.rotation.z - 85  )));
-        Debug.Log("Content to place = " + contentToPlace);
-        Debug.Log("Placed content = " + content.name);
         isPlaced = true;
     }
 
     private void UpdatePlacementIndicator() {
-        if (placementPoseIsValid) {
-            Debug.Log("Found valid placement, placing indicator");
+        if (placementPoseIsValid && !isPlaced) {
             placementIndicator.SetActive(true);
             placementIndicator.transform.SetPositionAndRotation(placementPose.position, placementPose.rotation);
         } else {
@@ -52,8 +51,6 @@ public class ARTapToPlaceObject : MonoBehaviour {
         var screenCenter = Camera.main.ViewportToScreenPoint(new Vector3(0.5f, 0.5f));
         var hits = new List<ARRaycastHit>();
         raycaster.Raycast(screenCenter, hits, TrackableType.Planes);
-
-        Debug.Log("Found hits = " + (hits.Count > 0));
 
         placementPoseIsValid = hits.Count > 0;
 

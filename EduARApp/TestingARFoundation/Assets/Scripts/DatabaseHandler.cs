@@ -12,8 +12,10 @@ public class DatabaseHandler : MonoBehaviour {
     private InputField pinCodeInputField;
     [SerializeField]
     private Text LogInErrorBuffer;
+    [SerializeField]
+    private GameObject loadingSymbol;
 
-    public bool LoadingScenario = false;
+    private bool LoadingScenario = false;
 
     private static PanelHandler panelHandler;
 
@@ -36,7 +38,6 @@ public class DatabaseHandler : MonoBehaviour {
         string name = nameInputField.text;
         int pinCode = int.Parse(pinCodeInputField.text);
 
-        Debug.Log("Logging in");
         DBConnector.GetUserData((callback) => {
             if (callback == null)   // Incorrect login detected
                 PrintError("Oeps, dat klopt niet", Color.red);
@@ -48,14 +49,19 @@ public class DatabaseHandler : MonoBehaviour {
                     pinCodeInputField.text = "";
                     PrintError("", Color.black);
                     panelHandler.SwitchPanel(Panel.Level.ToString());
+                    SetLoadingSymbolActive(false);
                 }
             }
         }, isTeacher: false, studentName: name, studentPin: pinCode);
     }
 
+    public void SetLoadingSymbolActive(bool IsLoading) {
+        loadingSymbol.SetActive(IsLoading);
+    }
+
     public void OpenScenario(string scenarioId) {
+        SetLoadingSymbolActive(true);
         StartCoroutine(LoadScenarioCoroutine(int.Parse(scenarioId)));
-        // Prepare first prefab for placement
         // Initialize UI with questions and answers
     }
 
@@ -118,6 +124,7 @@ public class DatabaseHandler : MonoBehaviour {
         while (loadingFigures)
             yield return null;
 
+        SetLoadingSymbolActive(false);
         ARSessionHandler.SetContent(Resources.Load<GameObject>(figureModels[0].Location));
         panelHandler.SwitchPanel(Panel.Play.ToString());
     }

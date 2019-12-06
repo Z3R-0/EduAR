@@ -10,7 +10,7 @@ public class ARSessionHandler : MonoBehaviour {
     private void Awake() {
         ARSessionOrigin = GameObject.Find("AR Session Origin");
         ARSession = GameObject.Find("AR Session");
-        ScriptManager = GameObject.Find("ScriptManager");
+        ScriptManager = GameObject.Find("ARScriptManager");
     }
 
     public static void EnableAR() {
