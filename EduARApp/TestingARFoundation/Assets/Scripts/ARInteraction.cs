@@ -5,20 +5,14 @@ using UnityEngine.UI;
 using UnityEngine.XR.ARFoundation;
 
 public class ARInteraction : MonoBehaviour {
-    [SerializeField]
-    private GameObject ui;
-    [SerializeField]
-    private Text feedbackText;
-    [SerializeField]
-    private Toggle[] toggles;
-    private float text_time;
- 
     private ARSessionOrigin arOrigin;
     private ARRaycastManager raycaster;
+    private PlayTimeManager manager;
 
     void Start() {
         arOrigin = FindObjectOfType<ARSessionOrigin>();
         raycaster = arOrigin.GetComponent<ARRaycastManager>();
+        manager = gameObject.GetComponent<PlayTimeManager>();
     }
 
     // Update is called once per frame
@@ -29,10 +23,9 @@ public class ARInteraction : MonoBehaviour {
 
             if (Physics.Raycast(raycast, out raycastHit, maxDistance: 1000f)) {
                 if (raycastHit.collider.CompareTag("ARContent")) {
-                    ui.SetActive(true);
+                    manager.InitializePlayUI();
                 }
             }
         }
-        
     }
 }

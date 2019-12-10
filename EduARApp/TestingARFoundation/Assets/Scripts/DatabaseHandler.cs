@@ -19,7 +19,7 @@ public class DatabaseHandler : MonoBehaviour {
 
     private static PanelHandler panelHandler;
 
-    private static Dictionary<ScenarioFigure, Dictionary<ScenarioQuestion, List<ScenarioAnswer>>> FiguresWithQuestionsAndAnswers = new Dictionary<ScenarioFigure, Dictionary<ScenarioQuestion, List<ScenarioAnswer>>>();
+    public static Dictionary<ScenarioFigure, Dictionary<ScenarioQuestion, List<ScenarioAnswer>>> FiguresWithQuestionsAndAnswers = new Dictionary<ScenarioFigure, Dictionary<ScenarioQuestion, List<ScenarioAnswer>>>();
     private static List<Figure> figureModels = new List<Figure>();
 
     private string output;
@@ -62,7 +62,6 @@ public class DatabaseHandler : MonoBehaviour {
     public void OpenScenario(string scenarioId) {
         SetLoadingSymbolActive(true);
         StartCoroutine(LoadScenarioCoroutine(int.Parse(scenarioId)));
-        // Initialize UI with questions and answers
     }
 
     private IEnumerator LoadScenarioCoroutine(int scenarioId) {

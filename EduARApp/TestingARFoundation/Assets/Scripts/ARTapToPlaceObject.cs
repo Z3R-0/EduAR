@@ -39,7 +39,7 @@ public class ARTapToPlaceObject : MonoBehaviour {
     }
 
     private void UpdatePlacementIndicator() {
-        if (placementPoseIsValid) {
+        if (placementPoseIsValid && !(popup.activeInHierarchy)) {
             placementIndicator.SetActive(true);
             placementIndicator.transform.SetPositionAndRotation(placementPose.position, placementPose.rotation);
         } else {
