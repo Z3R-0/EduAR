@@ -10,6 +10,11 @@ public class UITranslator : MonoBehaviour {
 
     public GameObject[] answers;
 
+    public void ClearToggles() {
+        foreach(GameObject go in answers)
+            go.GetComponent<Toggle>().isOn = false;
+    }
+
     public void SetQuestionText(string text) {
         questionText.text = text;
     }

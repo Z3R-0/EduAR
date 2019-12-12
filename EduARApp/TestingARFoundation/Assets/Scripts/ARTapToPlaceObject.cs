@@ -17,7 +17,7 @@ public class ARTapToPlaceObject : MonoBehaviour {
     private ARRaycastManager raycaster;
     private Pose placementPose;
     private bool placementPoseIsValid = false;
-    private bool isPlaced = false;
+    public bool isPlaced = false;
 
     void Start() {
         arOrigin = FindObjectOfType<ARSessionOrigin>();

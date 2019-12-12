@@ -14,13 +14,15 @@ public class DatabaseHandler : MonoBehaviour {
     private Text LogInErrorBuffer;
     [SerializeField]
     private GameObject loadingSymbol;
+    
 
     private bool LoadingScenario = false;
 
+    public static GameObject MainCanvas;
     private static PanelHandler panelHandler;
 
     public static Dictionary<ScenarioFigure, Dictionary<ScenarioQuestion, List<ScenarioAnswer>>> FiguresWithQuestionsAndAnswers = new Dictionary<ScenarioFigure, Dictionary<ScenarioQuestion, List<ScenarioAnswer>>>();
-    private static List<Figure> figureModels = new List<Figure>();
+    public static List<Figure> figureModels = new List<Figure>();
 
     private string output;
     private string stack;
@@ -29,6 +31,7 @@ public class DatabaseHandler : MonoBehaviour {
 
     private void Awake() {
         panelHandler = GameObject.Find("MainCanvas").GetComponent<PanelHandler>();
+        MainCanvas = GameObject.Find("MainCanvas");
     }
 
     /// <summary>
@@ -69,12 +72,12 @@ public class DatabaseHandler : MonoBehaviour {
 
         yield return StartCoroutine(DBConnector.GetScenarioFigureIEnumerator((figures) => {
             if (figures != null) {
-                Dictionary<ScenarioQuestion, List<ScenarioAnswer>> QuestionsAndAnswers = new Dictionary<ScenarioQuestion, List<ScenarioAnswer>>();
                 ScenarioFigure lastFigure;
                 ScenarioQuestion lastQuestion;
                 ScenarioAnswer lastAnswer;
 
                 foreach (object scenarioFigure in figures) {
+                    Dictionary<ScenarioQuestion, List<ScenarioAnswer>> QuestionsAndAnswers = new Dictionary<ScenarioQuestion, List<ScenarioAnswer>>();
                     lastFigure = (ScenarioFigure)scenarioFigure;
 
                     DBConnector.GetQuestionData((questions) => {

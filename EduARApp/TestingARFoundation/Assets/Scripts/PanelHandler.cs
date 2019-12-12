@@ -11,7 +11,8 @@ public enum Panel {
 }
 
 public enum PopUp {
-    PlayPopup
+    Play,
+    Results
 }
 
 public class PanelHandler : MonoBehaviour {
@@ -31,7 +32,7 @@ public class PanelHandler : MonoBehaviour {
             popups.Add((PopUp)i, popupsList[i]);
         }
         Screen.orientation = ScreenOrientation.Portrait;
-    }
+        }
     
 
     /// <summary>
@@ -51,17 +52,31 @@ public class PanelHandler : MonoBehaviour {
     }
 
     /// <summary>
-    /// Used for button OnClick methods to close the menu
+    /// Used for button OnClick methods to close the play dialog
     /// </summary>
     public void ClosePlayPopUp() {
-        popups[PopUp.PlayPopup].SetActive(false);
+        popups[PopUp.Play].SetActive(false);
     }
 
     /// <summary>
-    /// Used for button OnClick methods to open the menu
+    /// Used for button OnClick methods to open the play dialog
     /// </summary>
     public void OpenPlayPopUp() {
-        popups[PopUp.PlayPopup].SetActive(true);
+        popups[PopUp.Play].SetActive(true);
+    }
+
+    /// <summary>
+    /// Used for button OnClick methods to close the results screen
+    /// </summary>
+    public void CloseResultsPopUp() {
+        popups[PopUp.Results].SetActive(false);
+    }
+
+    /// <summary>
+    /// Used for button OnClick methods to open the results screen
+    /// </summary>
+    public void OpenResultsPopUp() {
+        popups[PopUp.Results].SetActive(true);
     }
 
     public void LogOut() {
@@ -101,6 +116,7 @@ public class PanelHandler : MonoBehaviour {
     public void SwitchPanel(string panel) {
         if (panel == "Play") {
             OpenPlayPopUp();
+            CloseResultsPopUp();
             Screen.orientation = ScreenOrientation.Landscape;
         } else {
             Screen.orientation = ScreenOrientation.Portrait;
