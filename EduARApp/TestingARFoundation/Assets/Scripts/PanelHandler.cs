@@ -32,8 +32,7 @@ public class PanelHandler : MonoBehaviour {
             popups.Add((PopUp)i, popupsList[i]);
         }
         Screen.orientation = ScreenOrientation.Portrait;
-        }
-    
+    }
 
     /// <summary>
     /// Activates the given pop up

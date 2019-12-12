@@ -17,6 +17,10 @@ public class PlayTimeManager : MonoBehaviour {
     private GameObject questionPanel;
     [SerializeField]
     private GameObject resultsPopup;
+    [SerializeField]
+    private Button nextButton;
+    [SerializeField]
+    private Text feedbackText;
 
     private UITranslator translator;
     private ARTapToPlaceObject arTap;
@@ -46,14 +50,24 @@ public class PlayTimeManager : MonoBehaviour {
     }
 
     public void Next() {
-        if (isCorrectAnswer())
+        feedbackText.gameObject.SetActive(true);
+        if (isCorrectAnswer()) {
+            feedbackText.color = Color.green;
+            feedbackText.text = "Goed Gedaan!";
             ++correctlyAnsweredQuestions;
+        } else {
+            feedbackText.color = Color.red;
+            feedbackText.text = "Helaas!";
+        }
 
         StartCoroutine(WaitForNextQuestion());
     }
 
     private IEnumerator WaitForNextQuestion() {
-        yield return new WaitForSeconds(3f);
+        yield return new WaitForSeconds(2f);
+        nextButton.enabled = true;
+        feedbackText.text = "";
+        feedbackText.gameObject.SetActive(false);
         translator.ClearToggles();
         NextQuestion();
     }
@@ -81,7 +95,7 @@ public class PlayTimeManager : MonoBehaviour {
             }
 
             if (currentFigure == null) {
-                StartCoroutine(ShowResults());
+                ShowResults();
             } else {
 
                 panelHandler.OpenPlayPopUp();
@@ -97,19 +111,24 @@ public class PlayTimeManager : MonoBehaviour {
         }
     }
 
-    private IEnumerator ShowResults() {
+    private void ShowResults() {
         panelHandler.RunPopUp(PopUp.Results);
 
         GameObject.FindGameObjectWithTag("CorrectQuestions").GetComponent<Text>().text = correctlyAnsweredQuestions.ToString();
         GameObject.FindGameObjectWithTag("TotalQuestions").GetComponent<Text>().text = totalQuestions.ToString();
+
+        totalQuestions = null;
+
+        correctlyAnsweredQuestions = 0;
+        nextButton.enabled = true;
+        feedbackText.text = "";
+        feedbackText.gameObject.SetActive(false);
 
         Destroy(GameObject.FindGameObjectWithTag("ARContent"));
         arTap.contentToPlace = null;
         arTap.isPlaced = false;
         ARInteraction.AREnabled = false;
         questionPanel.SetActive(false);
-
-        yield return new WaitForSeconds(3f);
     }
 
     private GameObject GetNextFigureById(int id) {

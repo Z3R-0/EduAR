@@ -69,6 +69,7 @@ public class DatabaseHandler : MonoBehaviour {
 
     private IEnumerator LoadScenarioCoroutine(int scenarioId) {
         LoadingScenario = true;
+        FiguresWithQuestionsAndAnswers.Clear();
 
         yield return StartCoroutine(DBConnector.GetScenarioFigureIEnumerator((figures) => {
             if (figures != null) {
