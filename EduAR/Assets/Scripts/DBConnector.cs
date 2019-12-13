@@ -692,6 +692,8 @@ public class DBConnector : MonoBehaviour {
                     // Incorrect email error
                     ErrorBuffer().text = "Incorrect Credentials";
                     ErrorBuffer().color = Color.red;
+
+                    Invoke("ClearText", 2f);
                 }
             } else {
                 foreach (var teacher in callback) {
@@ -706,10 +708,16 @@ public class DBConnector : MonoBehaviour {
                         // Incorrect password error
                         ErrorBuffer().text = "Incorrect Credentials";
                         ErrorBuffer().color = Color.red;
+
+                        Invoke("ClearText", 2f);
                     }
                 }
             }
         }, teacherEmail: email);
+    }
+
+    public void ClearText() {
+        ErrorBuffer().text = "";
     }
 
     public void ResetPassword(InputField field) {

@@ -180,6 +180,7 @@ public class UITranslator : MonoBehaviour {
         if (scenarioNameInputField.text == "") {
             CreateScenarioErrorBuffer.color = Color.red;
             CreateScenarioErrorBuffer.text = "Geef het scenario een naam";
+            Invoke("ClearText", 2f);
             return;
         }
 
@@ -211,7 +212,14 @@ public class UITranslator : MonoBehaviour {
             }
             CreateScenarioErrorBuffer.color = Color.green;
             CreateScenarioErrorBuffer.text = "Scenario opgeslagen";
+
+            Invoke("ClearText", 2f);
+
         }, scenarioQnA, scenarioNameInputField.text, available, Teacher.currentTeacher.Class_ID, (StoryType)scenarioStoryTypeDropDown.value, hiddenId);
+    }
+
+    private void ClearText() {
+        CreateScenarioErrorBuffer.text = "";
     }
 
     /// <summary>
