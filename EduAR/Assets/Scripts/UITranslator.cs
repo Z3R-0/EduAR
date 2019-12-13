@@ -180,6 +180,7 @@ public class UITranslator : MonoBehaviour {
         if (scenarioNameInputField.text == "") {
             CreateScenarioErrorBuffer.color = Color.red;
             CreateScenarioErrorBuffer.text = "Geef het scenario een naam";
+            Invoke("ClearText", 2f);
             return;
         }
 
