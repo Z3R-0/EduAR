@@ -105,6 +105,10 @@ public class PanelHandler : MonoBehaviour {
         Teacher.currentTeacher = null;
     }
 
+    public void CloseApplication() {
+        Application.Quit();
+    }
+
     /// <summary>
     /// Returns a list of all currently active pop ups
     /// </summary>
