@@ -49,6 +49,6 @@ public class ScenarioListHandler : MonoBehaviour {
                 Button button = ScenarioItem.GetComponent<Button>();
                 button.onClick.AddListener(delegate { dbHandler.OpenScenario(((Scenario)scenario).Id.ToString()); });
             }
-        }, classID: Student.currentStudent.Class_ID);
+        }, classID: Student.currentStudent.Class_ID, available: 1);
     }
 }
